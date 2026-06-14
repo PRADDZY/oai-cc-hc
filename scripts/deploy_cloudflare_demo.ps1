@@ -6,6 +6,7 @@ param(
     [string]$ModalInferenceUrl = $env:MODAL_INFERENCE_URL,
     [string]$ModalApiToken = $env:MODAL_API_TOKEN,
     [switch]$AllowAnyOrigin,
+    [switch]$MinimalDemo,
     [switch]$SkipResourceProvision,
     [switch]$CaptureScreenshot
 )
@@ -169,6 +170,21 @@ $resources = [ordered]@{
     kv = $null
     r2 = @()
     queues = @()
+}
+
+if ($MinimalDemo) {
+    foreach ($property in @(
+        "d1_databases",
+        "r2_buckets",
+        "kv_namespaces",
+        "queues",
+        "durable_objects",
+        "migrations"
+    )) {
+        $config.PSObject.Properties.Remove($property)
+    }
+    $SkipResourceProvision = $true
+    Add-DeployLog "Minimal demo mode enabled; unused stateful bindings were omitted."
 }
 
 if (-not $SkipResourceProvision) {
