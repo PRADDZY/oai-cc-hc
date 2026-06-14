@@ -1,0 +1,6 @@
+{
+  "status": "ok",
+  "service": "cloudflare-worker",
+  "modal_configured": true,
+  "simulation_only": true
+}

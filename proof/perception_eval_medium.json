@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-06-14T11:15:11+00:00",
+  "git_sha": "4ad61da",
+  "payload": {
+    "artifact_id": "perception-medium-227bb42aaca4",
+    "calibration_ece": 0.0,
+    "calibration_f1": 0.502615,
+    "calibration_iou": 0.335662,
+    "calibration_split": "valid",
+    "checkpoint_path": "/vol/models/perception-medium-227bb42aaca4.pt",
+    "claim_boundary": "MVP S1 flood segmentation baseline; not operational approval",
+    "class_balance": {
+      "loss_pos_weight": 42.337854,
+      "negative_pixels": 71805,
+      "positive_pixels": 1696,
+      "positive_ratio": 0.023075,
+      "valid_pixels": 73501
+    },
+    "dataset": "Sen1Floods11",
+    "dataset_hash": "a4be585e6332073dced291dd0fc5768ea21c29daecc08ffe1068d99007c63d82",
+    "dataset_source": "sen1floods11_gcs_v1.1",
+    "decision_threshold": 0.55,
+    "event_held_out_f1": 0.433672,
+    "event_held_out_iou": 0.276872,
+    "heldout_split": "test",
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 1.666296
+      },
+      {
+        "epoch": 2,
+        "train_loss": 1.540014
+      },
+      {
+        "epoch": 3,
+        "train_loss": 1.521485
+      },
+      {
+        "epoch": 4,
+        "train_loss": 1.507457
+      },
+      {
+        "epoch": 5,
+        "train_loss": 1.496302
+      },
+      {
+        "epoch": 6,
+        "train_loss": 1.486828
+      }
+    ],
+    "model_family": "small-conv-s1-flood-head",
+    "optimizer_steps": 144,
+    "samples_seen": {
+      "test": 8,
+      "train": 24,
+      "valid": 8
+    },
+    "stage": "medium",
+    "synthetic_unit_mode": false,
+    "training_mode": "optimizer-trained small S1 flood segmentation head"
+  },
+  "proof_type": "perception_training",
+  "run_id": "perception-perception-medium-227bb42aaca4",
+  "simulation_only": true,
+  "trained_result": true
+}

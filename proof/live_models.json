@@ -1,0 +1,9 @@
+{
+  "perception_alias": "production",
+  "perception_artifact": "perception-medium-227bb42aaca4",
+  "policy_alias": "production",
+  "policy_artifact": "shared-linear-masked-ppo-medium-6df34e0b680c",
+  "promoted_at": "2026-06-14T11:37:35+00:00",
+  "proof_run_id": "rl-shared-linear-masked-ppo-medium-6df34e0b680c",
+  "simulation_only": true
+}

@@ -1,0 +1,28 @@
+﻿{
+    "source":  "trained-modal-policy",
+    "git_sha":  "c4341a7",
+    "simulation_only":  true,
+    "proposal":  {
+                     "contract_version":  "1.0",
+                     "mission_id":  "19e78b17-e38e-52ea-8abc-57bf07f9237c",
+                     "drone_id":  "drone_0",
+                     "action":  "search",
+                     "parameters":  {
+                                        "sector":  "highest-priority-safe-cell",
+                                        "source":  "trained-modal-policy"
+                                    },
+                     "confidence":  0.708678,
+                     "recurrent_state_ref":  null,
+                     "coordination_message":  [
+                                                  0.749504,
+                                                  0.250496,
+                                                  0
+                                              ]
+                 },
+    "safety":  {
+                   "status":  "allowed",
+                   "executed_action":  "search",
+                   "reason_code":  "trained_policy_safe_proposal",
+                   "shield_status":  true
+               }
+}

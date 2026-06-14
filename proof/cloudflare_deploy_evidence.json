@@ -1,0 +1,21 @@
+﻿{
+    "generated_at":  "2026-06-14T17:19:41.1137819+05:30",
+    "account_id":  "0f29b8c67d98ac571ea8874d8b3c7345",
+    "worker_url":  "https://flood-rescue-api.dpratik3005.workers.dev",
+    "pages_url":  "https://flood-rescue-command-center.pages.dev",
+    "pages_preview_url":  "https://786e93e6.flood-rescue-command-center.pages.dev",
+    "modal_inference_url":  "https://superhexagon2021--flood-rescue-inference-api.modal.run",
+    "deployment_mode":  "minimal-demo",
+    "release_gate_passed":  true,
+    "perception_iou":  0.276872,
+    "perception_f1":  0.433672,
+    "rl_candidate_lives_mean":  1,
+    "rl_baseline_lives_mean":  0,
+    "rl_safety_failures":  0,
+    "live_policy_source":  "trained-modal-policy",
+    "live_policy_confidence":  0.708678,
+    "limitations":  [
+                        "simulation-only orchestration",
+                        "R2 omitted because account R2 is not enabled"
+                    ]
+}

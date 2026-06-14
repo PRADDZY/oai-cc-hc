@@ -1,0 +1,918 @@
+{
+  "active_models": {
+    "perception_alias": "production",
+    "perception_artifact": "perception-medium-227bb42aaca4",
+    "policy_alias": "production",
+    "policy_artifact": "shared-linear-masked-ppo-medium-6df34e0b680c",
+    "promoted_at": "2026-06-14T11:37:35+00:00",
+    "proof_run_id": "rl-shared-linear-masked-ppo-medium-6df34e0b680c",
+    "simulation_only": true
+  },
+  "metrics": {
+    "perception_ece": 0,
+    "perception_f1": 0.433672,
+    "perception_iou": 0.276872,
+    "rl_baseline_lives_mean": 0,
+    "rl_candidate_lives_mean": 1,
+    "rl_mean_difference": 1,
+    "rl_safety_failures": 0
+  },
+  "modal_app": "flood-rescue-inference",
+  "passed": true,
+  "proofs": {
+    "data_prep": {
+      "generated_at": "2026-06-14T11:14:12+00:00",
+      "git_sha": "4ad61da",
+      "payload": {
+        "claim_boundary": "dataset manifest proof only; imagery is not RL trajectory data",
+        "dataset": "Sen1Floods11",
+        "dataset_hash": "a4be585e6332073dced291dd0fc5768ea21c29daecc08ffe1068d99007c63d82",
+        "dataset_source": "sen1floods11_gcs_v1.1",
+        "dataset_version": "v1.1",
+        "limits": {
+          "test": 8,
+          "train": 24,
+          "valid": 8
+        },
+        "manifest_path": "/vol/data/sen1floods11/v1.1/manifests/medium.json",
+        "records_indexed": 40,
+        "split_policy": "official_flood_handlabeled_splits",
+        "stage": "medium"
+      },
+      "proof_type": "data_prep",
+      "run_id": "data_prep-55c2c71bbc96",
+      "simulation_only": true,
+      "trained_result": false
+    },
+    "perception": {
+      "generated_at": "2026-06-14T11:15:11+00:00",
+      "git_sha": "4ad61da",
+      "payload": {
+        "artifact_id": "perception-medium-227bb42aaca4",
+        "calibration_ece": 0,
+        "calibration_f1": 0.502615,
+        "calibration_iou": 0.335662,
+        "calibration_split": "valid",
+        "checkpoint_path": "/vol/models/perception-medium-227bb42aaca4.pt",
+        "claim_boundary": "MVP S1 flood segmentation baseline; not operational approval",
+        "class_balance": {
+          "loss_pos_weight": 42.337854,
+          "negative_pixels": 71805,
+          "positive_pixels": 1696,
+          "positive_ratio": 0.023075,
+          "valid_pixels": 73501
+        },
+        "dataset": "Sen1Floods11",
+        "dataset_hash": "a4be585e6332073dced291dd0fc5768ea21c29daecc08ffe1068d99007c63d82",
+        "dataset_source": "sen1floods11_gcs_v1.1",
+        "decision_threshold": 0.55,
+        "event_held_out_f1": 0.433672,
+        "event_held_out_iou": 0.276872,
+        "heldout_split": "test",
+        "history": [
+          {
+            "epoch": 1,
+            "train_loss": 1.666296
+          },
+          {
+            "epoch": 2,
+            "train_loss": 1.540014
+          },
+          {
+            "epoch": 3,
+            "train_loss": 1.521485
+          },
+          {
+            "epoch": 4,
+            "train_loss": 1.507457
+          },
+          {
+            "epoch": 5,
+            "train_loss": 1.496302
+          },
+          {
+            "epoch": 6,
+            "train_loss": 1.486828
+          }
+        ],
+        "model_family": "small-conv-s1-flood-head",
+        "optimizer_steps": 144,
+        "samples_seen": {
+          "test": 8,
+          "train": 24,
+          "valid": 8
+        },
+        "stage": "medium",
+        "synthetic_unit_mode": false,
+        "training_mode": "optimizer-trained small S1 flood segmentation head"
+      },
+      "proof_type": "perception_training",
+      "run_id": "perception-perception-medium-227bb42aaca4",
+      "simulation_only": true,
+      "trained_result": true
+    },
+    "rl": {
+      "generated_at": "2026-06-14T11:17:43+00:00",
+      "git_sha": "4ad61da",
+      "payload": {
+        "algorithm": "shared-linear-masked-ppo",
+        "artifact_id": "shared-linear-masked-ppo-medium-6df34e0b680c",
+        "baseline": {
+          "coverage_mean": 0.25,
+          "episodes": 8,
+          "episodes_detail": [
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-100",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-101",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-102",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-103",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-104",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-105",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-106",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 32,
+              "geofence_executions": 0,
+              "lives_aided_safely": 0,
+              "mission_id": "seed-107",
+              "mode": "baseline",
+              "policy_id": "baseline-hold",
+              "rescue_rate": 0,
+              "safety_interventions": 0,
+              "time_to_rescue": 8,
+              "unsafe_drop_executions": 0
+            }
+          ],
+          "lives_aided_safely_mean": 0,
+          "rescue_rate_mean": 0,
+          "safety_failures": 0,
+          "safety_interventions": 0
+        },
+        "candidate": {
+          "coverage_mean": 0.398438,
+          "episodes": 8,
+          "episodes_detail": [
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.375,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-100",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 0,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.25,
+              "energy_per_rescue": 8,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-101",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 0,
+              "time_to_rescue": 2,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 0.9,
+              "coverage": 0.375,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-102",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 1,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 0.9,
+              "coverage": 0.5,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-103",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 1,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.4375,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-104",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 0,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 0.9,
+              "coverage": 0.25,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-105",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 1,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.5,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-106",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 0,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            },
+            {
+              "collision_executions": 0,
+              "communication_continuity": 1,
+              "coverage": 0.5,
+              "energy_per_rescue": 12,
+              "geofence_executions": 0,
+              "lives_aided_safely": 1,
+              "mission_id": "seed-107",
+              "mode": "trained",
+              "policy_id": "masked-ppo-shared-policy",
+              "rescue_rate": 1,
+              "safety_interventions": 0,
+              "time_to_rescue": 3,
+              "unsafe_drop_executions": 0
+            }
+          ],
+          "lives_aided_safely_mean": 1,
+          "rescue_rate_mean": 1,
+          "safety_failures": 0,
+          "safety_interventions": 3
+        },
+        "checkpoint_path": "/vol/models/shared-linear-masked-ppo-medium-6df34e0b680c.json",
+        "config": {
+          "clip_epsilon": 0.2,
+          "entropy_coeff": 0.01,
+          "env": {
+            "height": 4,
+            "max_steps": 8,
+            "num_drones": 4,
+            "victim_count": 1,
+            "width": 4
+          },
+          "eval_deterministic": false,
+          "eval_seeds": [
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107
+          ],
+          "gae_lambda": 0.9,
+          "gamma": 0.97,
+          "learning_rate": 0.03,
+          "max_grad_norm": 0.5,
+          "minibatch_size": 16,
+          "ppo_constraints": {
+            "action_masks": true,
+            "clipped_policy_update": true,
+            "entropy_bonus": 0.01,
+            "gradient_clip": 0.5,
+            "normalize_advantages": true,
+            "shared_policy_across_drones": true,
+            "value_loss": 0.5
+          },
+          "ppo_epochs": 4,
+          "rollout_steps": 24,
+          "total_updates": 30,
+          "train_seed": 2026,
+          "value_loss_coeff": 0.5
+        },
+        "loss_log": [
+          {
+            "approx_kl": 0.132723,
+            "clip_fraction": 0.580729,
+            "entropy": 1.523533,
+            "grad_norm": 0.5,
+            "policy_loss": -0.021808,
+            "update": 0,
+            "value_loss": 26.892397
+          },
+          {
+            "approx_kl": 0.049998,
+            "clip_fraction": 0.263021,
+            "entropy": 1.359872,
+            "grad_norm": 0.5,
+            "policy_loss": -0.023312,
+            "update": 1,
+            "value_loss": 50.14989
+          },
+          {
+            "approx_kl": 0.049575,
+            "clip_fraction": 0.299479,
+            "entropy": 1.333946,
+            "grad_norm": 0.5,
+            "policy_loss": -0.010961,
+            "update": 2,
+            "value_loss": 49.463009
+          },
+          {
+            "approx_kl": 0.014007,
+            "clip_fraction": 0.216146,
+            "entropy": 1.287196,
+            "grad_norm": 0.5,
+            "policy_loss": -0.002826,
+            "update": 3,
+            "value_loss": 47.857996
+          },
+          {
+            "approx_kl": 0.03872,
+            "clip_fraction": 0.210938,
+            "entropy": 1.150657,
+            "grad_norm": 0.5,
+            "policy_loss": -0.010513,
+            "update": 4,
+            "value_loss": 55.541688
+          },
+          {
+            "approx_kl": 0.02184,
+            "clip_fraction": 0.138021,
+            "entropy": 1.069202,
+            "grad_norm": 0.5,
+            "policy_loss": -0.008914,
+            "update": 5,
+            "value_loss": 57.303974
+          },
+          {
+            "approx_kl": 0.056415,
+            "clip_fraction": 0.361979,
+            "entropy": 1.132113,
+            "grad_norm": 0.5,
+            "policy_loss": -0.014254,
+            "update": 6,
+            "value_loss": 51.84358
+          },
+          {
+            "approx_kl": 0.09922,
+            "clip_fraction": 0.427083,
+            "entropy": 0.9919,
+            "grad_norm": 0.5,
+            "policy_loss": 0.009548,
+            "update": 7,
+            "value_loss": 46.875598
+          },
+          {
+            "approx_kl": 0.045723,
+            "clip_fraction": 0.330729,
+            "entropy": 0.872315,
+            "grad_norm": 0.5,
+            "policy_loss": -0.016856,
+            "update": 8,
+            "value_loss": 60.625878
+          },
+          {
+            "approx_kl": 0.003644,
+            "clip_fraction": 0.179688,
+            "entropy": 0.872817,
+            "grad_norm": 0.5,
+            "policy_loss": -0.002676,
+            "update": 9,
+            "value_loss": 39.866038
+          },
+          {
+            "approx_kl": 0.031041,
+            "clip_fraction": 0.307292,
+            "entropy": 0.786116,
+            "grad_norm": 0.5,
+            "policy_loss": -0.015319,
+            "update": 10,
+            "value_loss": 43.521586
+          },
+          {
+            "approx_kl": 0.01752,
+            "clip_fraction": 0.21875,
+            "entropy": 0.889503,
+            "grad_norm": 0.5,
+            "policy_loss": -0.010261,
+            "update": 11,
+            "value_loss": 38.991416
+          },
+          {
+            "approx_kl": 0.018494,
+            "clip_fraction": 0.328125,
+            "entropy": 0.897905,
+            "grad_norm": 0.5,
+            "policy_loss": -0.000481,
+            "update": 12,
+            "value_loss": 40.981978
+          },
+          {
+            "approx_kl": 0.006842,
+            "clip_fraction": 0.169271,
+            "entropy": 0.885676,
+            "grad_norm": 0.5,
+            "policy_loss": -0.00996,
+            "update": 13,
+            "value_loss": 44.691372
+          },
+          {
+            "approx_kl": 0.013407,
+            "clip_fraction": 0.182292,
+            "entropy": 0.755691,
+            "grad_norm": 0.5,
+            "policy_loss": -0.004749,
+            "update": 14,
+            "value_loss": 48.776823
+          },
+          {
+            "approx_kl": 0.008475,
+            "clip_fraction": 0.104167,
+            "entropy": 0.757616,
+            "grad_norm": 0.5,
+            "policy_loss": 0.003028,
+            "update": 15,
+            "value_loss": 54.17075
+          },
+          {
+            "approx_kl": 0.039165,
+            "clip_fraction": 0.208333,
+            "entropy": 0.804118,
+            "grad_norm": 0.497982,
+            "policy_loss": -0.001092,
+            "update": 16,
+            "value_loss": 45.501447
+          },
+          {
+            "approx_kl": 0.033487,
+            "clip_fraction": 0.216146,
+            "entropy": 0.895952,
+            "grad_norm": 0.5,
+            "policy_loss": -0.00063,
+            "update": 17,
+            "value_loss": 44.716053
+          },
+          {
+            "approx_kl": 0.000836,
+            "clip_fraction": 0.148438,
+            "entropy": 0.725192,
+            "grad_norm": 0.5,
+            "policy_loss": 0.00723,
+            "update": 18,
+            "value_loss": 80.074835
+          },
+          {
+            "approx_kl": -0.001042,
+            "clip_fraction": 0.080729,
+            "entropy": 0.738308,
+            "grad_norm": 0.5,
+            "policy_loss": -0.001163,
+            "update": 19,
+            "value_loss": 53.314995
+          },
+          {
+            "approx_kl": 0.043496,
+            "clip_fraction": 0.252604,
+            "entropy": 0.773363,
+            "grad_norm": 0.5,
+            "policy_loss": -0.011937,
+            "update": 20,
+            "value_loss": 37.637242
+          },
+          {
+            "approx_kl": 0.015888,
+            "clip_fraction": 0.171875,
+            "entropy": 0.655936,
+            "grad_norm": 0.5,
+            "policy_loss": 0.002689,
+            "update": 21,
+            "value_loss": 57.512656
+          },
+          {
+            "approx_kl": -0.00911,
+            "clip_fraction": 0.197917,
+            "entropy": 0.594838,
+            "grad_norm": 0.5,
+            "policy_loss": 0.000604,
+            "update": 22,
+            "value_loss": 68.088008
+          },
+          {
+            "approx_kl": 0.041267,
+            "clip_fraction": 0.197917,
+            "entropy": 0.693833,
+            "grad_norm": 0.5,
+            "policy_loss": 0.008692,
+            "update": 23,
+            "value_loss": 52.729953
+          },
+          {
+            "approx_kl": 0.085263,
+            "clip_fraction": 0.338542,
+            "entropy": 0.582481,
+            "grad_norm": 0.5,
+            "policy_loss": -0.00141,
+            "update": 24,
+            "value_loss": 71.620093
+          },
+          {
+            "approx_kl": 0.052974,
+            "clip_fraction": 0.283854,
+            "entropy": 0.659113,
+            "grad_norm": 0.5,
+            "policy_loss": 0.002075,
+            "update": 25,
+            "value_loss": 53.851188
+          },
+          {
+            "approx_kl": 0.050664,
+            "clip_fraction": 0.299479,
+            "entropy": 0.641194,
+            "grad_norm": 0.5,
+            "policy_loss": 0.005809,
+            "update": 26,
+            "value_loss": 51.493652
+          },
+          {
+            "approx_kl": 0.048465,
+            "clip_fraction": 0.291667,
+            "entropy": 0.47426,
+            "grad_norm": 0.495743,
+            "policy_loss": -0.00757,
+            "update": 27,
+            "value_loss": 87.956806
+          },
+          {
+            "approx_kl": 0.059353,
+            "clip_fraction": 0.335938,
+            "entropy": 0.533308,
+            "grad_norm": 0.5,
+            "policy_loss": 0.019325,
+            "update": 28,
+            "value_loss": 65.584799
+          },
+          {
+            "approx_kl": 0.012509,
+            "clip_fraction": 0.145833,
+            "entropy": 0.521972,
+            "grad_norm": 0.5,
+            "policy_loss": 0.000171,
+            "update": 29,
+            "value_loss": 55.754006
+          }
+        ],
+        "optimizer_steps": 720,
+        "parameter_l2_delta": 13.75678412,
+        "ppo_constraints": {
+          "action_masks": true,
+          "clip_param": 0.2,
+          "entropy_bonus": 0.01,
+          "grad_clip": 0.5,
+          "normalize_advantages": true,
+          "shared_policy_across_drones": true,
+          "value_loss": 0.5
+        },
+        "release_gate": {
+          "comparison": {
+            "baseline_mean": 0,
+            "candidate_mean": 1,
+            "ci_high": 1,
+            "ci_low": 1,
+            "mean_difference": 1,
+            "metric": "lives_aided_safely",
+            "positive_confidence": true
+          },
+          "passed": true,
+          "reasons": [],
+          "safety_failures": 0
+        },
+        "reward_log": [
+          {
+            "episodes": 4,
+            "mean_episode_length": 6,
+            "mean_episode_reward": 14.35,
+            "update": 0
+          },
+          {
+            "episodes": 5,
+            "mean_episode_length": 4.8,
+            "mean_episode_reward": 24.82,
+            "update": 1
+          },
+          {
+            "episodes": 6,
+            "mean_episode_length": 4,
+            "mean_episode_reward": 21.266667,
+            "update": 2
+          },
+          {
+            "episodes": 6,
+            "mean_episode_length": 4,
+            "mean_episode_reward": 23.633333,
+            "update": 3
+          },
+          {
+            "episodes": 7,
+            "mean_episode_length": 3.428571,
+            "mean_episode_reward": 22.671429,
+            "update": 4
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 19.211111,
+            "update": 5
+          },
+          {
+            "episodes": 7,
+            "mean_episode_length": 3.428571,
+            "mean_episode_reward": 19.328571,
+            "update": 6
+          },
+          {
+            "episodes": 7,
+            "mean_episode_length": 3.428571,
+            "mean_episode_reward": 23.4,
+            "update": 7
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 18.355556,
+            "update": 8
+          },
+          {
+            "episodes": 10,
+            "mean_episode_length": 2.4,
+            "mean_episode_reward": 21.61,
+            "update": 9
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 20.4,
+            "update": 10
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 21.577778,
+            "update": 11
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 21.033333,
+            "update": 12
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 20.433333,
+            "update": 13
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 21.875,
+            "update": 14
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 18.075,
+            "update": 15
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 19.9,
+            "update": 16
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 22.6375,
+            "update": 17
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 13.975,
+            "update": 18
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 21.2125,
+            "update": 19
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 23.2375,
+            "update": 20
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 20.2375,
+            "update": 21
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 15.933333,
+            "update": 22
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 21.6,
+            "update": 23
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 16.1625,
+            "update": 24
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 18.844444,
+            "update": 25
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 19.355556,
+            "update": 26
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 12.066667,
+            "update": 27
+          },
+          {
+            "episodes": 8,
+            "mean_episode_length": 3,
+            "mean_episode_reward": 15.675,
+            "update": 28
+          },
+          {
+            "episodes": 9,
+            "mean_episode_length": 2.666667,
+            "mean_episode_reward": 18.188889,
+            "update": 29
+          }
+        ],
+        "stage": "medium",
+        "trained_result": true
+      },
+      "proof_type": "rl_training",
+      "run_id": "rl-shared-linear-masked-ppo-medium-6df34e0b680c",
+      "simulation_only": true,
+      "trained_result": true
+    }
+  },
+  "readme_summary": "Modal trained an MVP S1 flood perception baseline and a masked PPO swarm orchestrator, then evaluated both for the live Cloudflare command center.",
+  "release_gate": {
+    "passed": true,
+    "perception_passed": true,
+    "reasons": [],
+    "rl_passed": true
+  },
+  "stage": "medium"
+}

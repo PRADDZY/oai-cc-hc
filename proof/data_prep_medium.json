@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-14T11:14:12+00:00",
+  "git_sha": "4ad61da",
+  "payload": {
+    "claim_boundary": "dataset manifest proof only; imagery is not RL trajectory data",
+    "dataset": "Sen1Floods11",
+    "dataset_hash": "a4be585e6332073dced291dd0fc5768ea21c29daecc08ffe1068d99007c63d82",
+    "dataset_source": "sen1floods11_gcs_v1.1",
+    "dataset_version": "v1.1",
+    "limits": {
+      "test": 8,
+      "train": 24,
+      "valid": 8
+    },
+    "manifest_path": "/vol/data/sen1floods11/v1.1/manifests/medium.json",
+    "records_indexed": 40,
+    "split_policy": "official_flood_handlabeled_splits",
+    "stage": "medium"
+  },
+  "proof_type": "data_prep",
+  "run_id": "data_prep-55c2c71bbc96",
+  "simulation_only": true,
+  "trained_result": false
+}

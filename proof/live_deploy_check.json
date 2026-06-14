@@ -1,0 +1,31 @@
+﻿{
+    "checked_at":  "2026-06-14T17:18:59.2466608+05:30",
+    "worker_url":  "https://flood-rescue-api.dpratik3005.workers.dev",
+    "frontend_url":  "https://flood-rescue-command-center.pages.dev",
+    "checks":  [
+                   {
+                       "name":  "worker_health",
+                       "url":  "https://flood-rescue-api.dpratik3005.workers.dev/api/health",
+                       "status":  200,
+                       "output":  "C:\\Users\\Pratik Daithankar\\Desktop\\oai-cc-hc\\scripts\\..\\proof\\live_health.json"
+                   },
+                   {
+                       "name":  "active_models",
+                       "url":  "https://flood-rescue-api.dpratik3005.workers.dev/api/models/active",
+                       "status":  200,
+                       "output":  "C:\\Users\\Pratik Daithankar\\Desktop\\oai-cc-hc\\scripts\\..\\proof\\live_models.json"
+                   },
+                   {
+                       "name":  "latest_proof",
+                       "url":  "https://flood-rescue-api.dpratik3005.workers.dev/api/proof/latest",
+                       "status":  200,
+                       "output":  "C:\\Users\\Pratik Daithankar\\Desktop\\oai-cc-hc\\scripts\\..\\proof\\live_proof.json"
+                   },
+                   {
+                       "name":  "frontend",
+                       "url":  "https://flood-rescue-command-center.pages.dev",
+                       "status":  200,
+                       "output":  "C:\\Users\\Pratik Daithankar\\Desktop\\oai-cc-hc\\scripts\\..\\proof\\live_frontend.html"
+                   }
+               ]
+}
