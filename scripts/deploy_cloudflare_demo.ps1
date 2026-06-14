@@ -71,7 +71,7 @@ function Invoke-Wrangler {
 
 function ConvertFrom-JsonFile {
     param([string]$Path)
-    return Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -Depth 64
+    return Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json
 }
 
 function Find-JsonItem {
@@ -86,12 +86,12 @@ function Find-JsonItem {
 
 function Ensure-D1Database {
     param([string]$Name)
-    $items = @(Invoke-Wrangler -Arguments @("d1", "list", "--json") | ConvertFrom-Json -Depth 16)
+    $items = @(Invoke-Wrangler -Arguments @("d1", "list", "--json") | ConvertFrom-Json)
     $existing = Find-JsonItem -Items $items -Name $Name
     if ($existing) {
         return [string]$existing.uuid
     }
-    $created = Invoke-Wrangler -Arguments @("d1", "create", $Name, "--json") | ConvertFrom-Json -Depth 16
+    $created = Invoke-Wrangler -Arguments @("d1", "create", $Name, "--json") | ConvertFrom-Json
     foreach ($property in @("uuid", "id", "database_id")) {
         if ($created.$property) {
             return [string]$created.$property
@@ -102,12 +102,12 @@ function Ensure-D1Database {
 
 function Ensure-KvNamespace {
     param([string]$Title)
-    $items = @(Invoke-Wrangler -Arguments @("kv", "namespace", "list", "--json") | ConvertFrom-Json -Depth 16)
+    $items = @(Invoke-Wrangler -Arguments @("kv", "namespace", "list", "--json") | ConvertFrom-Json)
     $existing = Find-JsonItem -Items $items -Name $Title
     if ($existing) {
         return [string]$existing.id
     }
-    $created = Invoke-Wrangler -Arguments @("kv", "namespace", "create", $Title, "--json") | ConvertFrom-Json -Depth 16
+    $created = Invoke-Wrangler -Arguments @("kv", "namespace", "create", $Title, "--json") | ConvertFrom-Json
     foreach ($property in @("id", "namespace_id")) {
         if ($created.$property) {
             return [string]$created.$property
