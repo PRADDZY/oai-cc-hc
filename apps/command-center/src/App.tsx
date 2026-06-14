@@ -7,6 +7,7 @@ import {
   requestMissionProposal,
 } from "./api";
 import { guidedScenario, scriptedPolicyProposal } from "./scenario";
+import { MissionTheater } from "./MissionTheater";
 import type {
   ActiveModelManifest,
   ApprovalDecision,
@@ -269,6 +270,12 @@ function MissionMap({
         <div className="scan-beam" aria-hidden="true" />
         <div className="map-coordinate x-axis">73.8567 E</div>
         <div className="map-coordinate y-axis">18.5204 N</div>
+        <MissionTheater
+          phase={phase}
+          proposal={proposal}
+          approvalDecision={approvalDecision}
+          heldOutcome={heldOutcome}
+        />
 
         {mission.floodCells.map((cell, index) => (
           <span
@@ -376,6 +383,7 @@ function PhasePanel({
     "safety-review",
     "operator-approval",
     "aid-delivery",
+    "mission-complete",
     "mission-held",
   ].includes(phase.id);
   const sourceLabel =

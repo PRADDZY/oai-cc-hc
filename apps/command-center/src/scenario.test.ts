@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { guidedScenario, scriptedPolicyProposal } from "./scenario";
 
 describe("guided rescue scenario", () => {
-  it("defines eight ordered phases lasting 60-90 seconds at normal speed", () => {
+  it("defines nine ordered phases lasting 60-90 seconds at normal speed", () => {
     expect(guidedScenario.map((phase) => phase.id)).toEqual([
       "satellite-intake",
       "flood-belief",
@@ -12,6 +12,7 @@ describe("guided rescue scenario", () => {
       "safety-review",
       "operator-approval",
       "aid-delivery",
+      "mission-complete",
     ]);
 
     const totalDuration = guidedScenario.reduce(
@@ -19,7 +20,7 @@ describe("guided rescue scenario", () => {
       0,
     );
 
-    expect(totalDuration).toBe(73_000);
+    expect(totalDuration).toBe(81_000);
     expect(totalDuration).toBeGreaterThanOrEqual(60_000);
     expect(totalDuration).toBeLessThanOrEqual(90_000);
   });

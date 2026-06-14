@@ -156,10 +156,10 @@ describe("useMissionPlayback", () => {
     const { result } = renderHook(() => useMissionPlayback());
 
     act(() => {
-      vi.advanceTimersByTime(73_000);
+      vi.advanceTimersByTime(81_000);
     });
 
-    expect(result.current.currentPhase.id).toBe("aid-delivery");
+    expect(result.current.currentPhase.id).toBe("mission-complete");
     expect(result.current.isComplete).toBe(true);
     expect(result.current.isPlaying).toBe(false);
     expect(result.current.progress).toBe(1);

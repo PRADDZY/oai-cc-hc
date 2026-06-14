@@ -23,6 +23,7 @@ describe("Command center guided demo", () => {
     expect(screen.getByText(/simulation replay \/ sen1floods11-based perception/i)).toBeInTheDocument();
     expect(screen.getByText(/training & deployment proof/i)).toBeInTheDocument();
     expect(screen.getAllByLabelText(/drone_\d/i)).toHaveLength(8);
+    expect(document.querySelector(".mission-theater")).toBeInTheDocument();
   });
 
   it("requests one live advisory at the policy handoff and renders it", async () => {

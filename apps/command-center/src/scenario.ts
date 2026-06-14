@@ -68,6 +68,13 @@ const finalDrones: DroneState[] = coordinatedDrones.map((item) =>
     : { ...item, status: item.role === "return" ? item.status : "holding recovery corridor" },
 );
 
+const completedDrones: DroneState[] = finalDrones.map((item) => ({
+  ...item,
+  role: item.role === "return" ? "return" : "hold",
+  battery: Math.max(item.battery - 2, 0),
+  status: item.role === "return" ? item.status : "mission complete hover",
+}));
+
 const victimHypotheses: VictimHypothesis[] = [
   { id: "victim_alpha", x: 7, y: 7, confidence: 0.91, status: "confirmed" },
   { id: "victim_beta", x: 2, y: 4, confidence: 0.58, status: "unconfirmed" },
@@ -90,6 +97,7 @@ const events: MissionEvent[] = [
   event("e06", "00:47", "simulated", "Service-reported safety metadata marks the proposal as approval-gated."),
   event("e07", "00:55", "simulated", "Scripted demo operator gate opens for five seconds."),
   event("e08", "01:00", "simulated", "Approved aid route completes without breaking relay continuity."),
+  event("e09", "01:13", "simulated", "Mission closes with one aided victim, zero safety failures, and preserved relay coverage."),
 ];
 
 export const scriptedPolicyProposal: LivePolicyProposal = {
@@ -272,6 +280,27 @@ export const guidedScenario: MissionPhase[] = [
       requiresHumanApproval: false,
     }),
     "Close the detect-plan-approve-rescue loop with measurable mission outcomes.",
+    "simulated",
+  ),
+  phase(
+    "mission-complete",
+    "Mission complete",
+    "09 / COMPLETE",
+    "The command center freezes the final proof state: victim_alpha aided, relay continuity preserved, and the swarm transitioned to a recovery hover.",
+    8_000,
+    mission({
+      confidence: 0.91,
+      drones: completedDrones,
+      floodCount: 14,
+      victimMode: "aided",
+      eventCount: 9,
+      relayLinks,
+      actionSummary: "Mission complete; preserve evidence and prepare recovery handoff.",
+      actionConfidence: 0.91,
+      shieldStatus: "allowed",
+      requiresHumanApproval: false,
+    }),
+    "Lock the pitch on outcome proof: aided victim, safe route, and accountable operator gate.",
     "simulated",
   ),
 ];
