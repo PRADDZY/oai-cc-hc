@@ -21,7 +21,7 @@ physical aircraft control.
 ```powershell
 uv sync --extra dev
 uv run pytest
-uv run uvicorn rescue_swarm.api.app:app --reload
+uv run uvicorn rescue_swarm.api.app:create_app --factory --reload
 ```
 
 The browser command center lives in `apps/command-center`.
