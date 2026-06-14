@@ -6,7 +6,7 @@ describe("Command center", () => {
   it("shows simulation and provenance labels", () => {
     render(<App />);
 
-    expect(screen.getByText(/simulation only/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/simulation only/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/model generated/i).length).toBeGreaterThan(0);
     expect(screen.getByLabelText(/local map fallback/i)).toBeInTheDocument();
   });

@@ -52,3 +52,21 @@ export interface MissionSnapshot {
   };
 }
 
+export interface ActiveModelManifest {
+  policy_alias: string;
+  policy_artifact: string;
+  perception_alias: string;
+  perception_artifact: string;
+  promoted_at: string;
+  proof_run_id: string;
+  simulation_only: boolean;
+}
+
+export interface ProofSummary {
+  passed?: boolean;
+  source?: string;
+  reason?: string;
+  simulation_only: boolean;
+  active_models?: ActiveModelManifest;
+  readme_summary?: string;
+}

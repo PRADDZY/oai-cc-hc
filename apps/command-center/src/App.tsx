@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
+import { fetchActiveModels, fetchLatestProof } from "./api";
 import { demoMission } from "./demo";
-import type { DroneState, MissionSnapshot } from "./types";
+import type { ActiveModelManifest, DroneState, MissionSnapshot, ProofSummary } from "./types";
 import "./styles.css";
 
 const roleLabels: Record<DroneState["role"], string> = {
@@ -11,6 +13,23 @@ const roleLabels: Record<DroneState["role"], string> = {
 };
 
 export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
+  const [proof, setProof] = useState<ProofSummary | null>(null);
+  const [activeModels, setActiveModels] = useState<ActiveModelManifest | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    void Promise.all([fetchLatestProof(), fetchActiveModels()]).then(([nextProof, models]) => {
+      if (!mounted) {
+        return;
+      }
+      setProof(nextProof);
+      setActiveModels(models ?? nextProof?.active_models ?? null);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <main className="shell" aria-label="Flood rescue mission command center">
       <section className="hero">
@@ -41,6 +60,7 @@ export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
       <section className="grid-layout">
         <MissionMap mission={mission} />
         <aside className="side-panel" aria-label="Swarm status">
+          <ProofPanel proof={proof} activeModels={activeModels} />
           <SafetyPanel mission={mission} />
           <DroneRoster drones={mission.drones} />
         </aside>
@@ -57,6 +77,34 @@ export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
         ))}
       </section>
     </main>
+  );
+}
+
+function ProofPanel({
+  proof,
+  activeModels,
+}: {
+  proof: ProofSummary | null;
+  activeModels: ActiveModelManifest | null;
+}) {
+  const status = proof?.passed ? "Modal proof gate passed" : "Awaiting Modal proof";
+  return (
+    <section className="proof-panel" aria-label="Modal training proof">
+      <p className="eyebrow">Cloudflare + Modal</p>
+      <h2>{status}</h2>
+      <p>{proof?.readme_summary ?? "Live gateway will show the latest Modal eval result here."}</p>
+      <dl>
+        <div>
+          <dt>Policy</dt>
+          <dd>{activeModels?.policy_artifact ?? "not promoted yet"}</dd>
+        </div>
+        <div>
+          <dt>Perception</dt>
+          <dd>{activeModels?.perception_artifact ?? "not promoted yet"}</dd>
+        </div>
+      </dl>
+      <span className="label label-simulated">simulation only</span>
+    </section>
   );
 }
 

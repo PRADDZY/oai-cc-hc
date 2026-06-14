@@ -1,0 +1,55 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "flood-rescue-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-14",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ALLOWED_ORIGIN": "https://flood-rescue-command-center.pages.dev",
+    "MODAL_INFERENCE_URL": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "flood_rescue",
+      "database_id": "replace-with-cloudflare-d1-id"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "flood-rescue-artifacts"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "MODEL_ALIASES",
+      "id": "replace-with-kv-namespace-id"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "OBSERVATION_QUEUE",
+        "queue": "flood-rescue-observations"
+      }
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MISSION_ROOMS",
+        "class_name": "MissionRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MissionRoom"]
+    }
+  ]
+}
