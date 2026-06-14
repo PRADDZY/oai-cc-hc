@@ -20,5 +20,5 @@ def evaluate(candidate: str = "latest", baseline: str = "heuristic", stage: str 
 
 
 @app.local_entrypoint()
-def main(candidate: str = "latest", baseline: str = "heuristic", stage: str = "smoke") -> None:
-    print(evaluate.remote(candidate, baseline, stage))
+def main(candidate: str = "latest", baseline: str = "heuristic", stage: str = "smoke") -> str:
+    return evaluate.remote(candidate, baseline, stage)

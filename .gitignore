@@ -17,5 +17,8 @@ coverage/
 artifacts/
 checkpoints/
 wandb/
+proof/*.json
+proof/*.txt
+proof/screenshots/
 .worktrees/
 .agents/

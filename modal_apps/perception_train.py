@@ -34,5 +34,5 @@ def train_perception(stage: str = "smoke") -> str:
 
 
 @app.local_entrypoint()
-def main(stage: str = "smoke") -> None:
-    print(train_perception.remote(stage))
+def main(stage: str = "smoke") -> str:
+    return train_perception.remote(stage)

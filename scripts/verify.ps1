@@ -17,3 +17,16 @@ if (Test-Path (Join-Path $commandCenter "package-lock.json")) {
     }
 }
 
+$worker = Join-Path $PSScriptRoot "..\apps\worker"
+if (Test-Path (Join-Path $worker "package-lock.json")) {
+    Push-Location $worker
+    try {
+        npm ci
+        npm run typecheck
+        npm test
+        npm audit --audit-level=high
+    }
+    finally {
+        Pop-Location
+    }
+}

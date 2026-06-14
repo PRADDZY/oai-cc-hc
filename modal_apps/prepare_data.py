@@ -20,5 +20,5 @@ def prepare_data(stage: str = "smoke") -> str:
 
 
 @app.local_entrypoint()
-def main(stage: str = "smoke") -> None:
-    print(prepare_data.remote(stage))
+def main(stage: str = "smoke") -> str:
+    return prepare_data.remote(stage)

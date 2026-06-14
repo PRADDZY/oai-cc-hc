@@ -34,5 +34,5 @@ def train_rl(stage: str = "smoke") -> str:
 
 
 @app.local_entrypoint()
-def main(stage: str = "smoke") -> None:
-    print(train_rl.remote(stage))
+def main(stage: str = "smoke") -> str:
+    return train_rl.remote(stage)
