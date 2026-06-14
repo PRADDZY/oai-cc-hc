@@ -1,0 +1,23 @@
+{
+  "contract_version": "1.0",
+  "event_id": "d8ec0f0d-2caf-42df-a07e-0281d54db3cc",
+  "mission_id": "665809d0-7a76-49cf-a167-3d872c78e474",
+  "source": "pune-simulator",
+  "event_type": "mission.started",
+  "observed_at": "2026-06-14T06:00:00Z",
+  "received_at": "2026-06-14T06:00:00Z",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [73.8567, 18.5204]
+  },
+  "payload": {
+    "scenario": "mula-mutha-urban-flood",
+    "active_drones": 8
+  },
+  "uncertainty": 0.0,
+  "provenance": ["seed:14062026"],
+  "ttl_seconds": 3600,
+  "data_label": "simulated",
+  "simulation_only": true
+}
+
