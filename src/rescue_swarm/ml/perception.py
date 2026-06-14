@@ -87,9 +87,14 @@ def _run_torch_training(
 
     torch.manual_seed(17)
     train_records = [record for record in samples if record.get("split") == "train"]
-    valid_records = [record for record in samples if record.get("split") in {"valid", "test"}]
-    if not valid_records:
-        valid_records = train_records
+    calibration_records = [record for record in samples if record.get("split") == "valid"]
+    heldout_records = [record for record in samples if record.get("split") == "test"]
+    calibration_split = "valid" if calibration_records else "train"
+    heldout_split = "test" if heldout_records else calibration_split
+    if not calibration_records:
+        calibration_records = train_records
+    if not heldout_records:
+        heldout_records = calibration_records
     if not train_records:
         raise ValueError("At least one training sample is required")
 
@@ -105,11 +110,21 @@ def _run_torch_training(
         nn.Conv2d(8, 1, kernel_size=1),
     )
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    criterion = nn.BCEWithLogitsLoss(reduction="none")
+    class_balance = _class_balance(
+        records=train_records,
+        torch=torch,
+        nn_functional=nn_functional,
+        synthetic_unit_mode=synthetic_unit_mode,
+    )
+    pos_weight = torch.tensor(
+        [class_balance["loss_pos_weight"]],
+        dtype=torch.float32,
+    )
+    criterion = nn.BCEWithLogitsLoss(reduction="none", pos_weight=pos_weight)
 
     train_loss_history: list[float] = []
     optimizer_steps = 0
-    epochs = 3 if synthetic_unit_mode else 2
+    epochs = _epochs_for_stage(stage, synthetic_unit_mode=synthetic_unit_mode)
     for _ in range(epochs):
         epoch_losses: list[float] = []
         model.train()
@@ -124,8 +139,12 @@ def _run_torch_training(
                 continue
             optimizer.zero_grad()
             logits = model(image.unsqueeze(0))
-            loss_map = criterion(logits, target.unsqueeze(0))
-            loss = (loss_map * valid.unsqueeze(0)).sum() / valid.sum().clamp_min(1.0)
+            loss = _segmentation_loss(
+                logits=logits,
+                target=target.unsqueeze(0),
+                valid=valid.unsqueeze(0),
+                criterion=criterion,
+            )
             loss.backward()
             optimizer.step()
             optimizer_steps += 1
@@ -133,12 +152,20 @@ def _run_torch_training(
         if epoch_losses:
             train_loss_history.append(round(sum(epoch_losses) / len(epoch_losses), 6))
 
-    validation_iou, validation_f1 = _evaluate_records(
+    decision_threshold, calibration_iou, calibration_f1 = _calibrate_threshold(
         model=model,
-        records=valid_records,
+        records=calibration_records,
         torch=torch,
         nn_functional=nn_functional,
         synthetic_unit_mode=synthetic_unit_mode,
+    )
+    validation_iou, validation_f1 = _evaluate_records(
+        model=model,
+        records=heldout_records,
+        torch=torch,
+        nn_functional=nn_functional,
+        synthetic_unit_mode=synthetic_unit_mode,
+        threshold=decision_threshold,
     )
 
     trained_result = optimizer_steps > 0
@@ -170,6 +197,12 @@ def _run_torch_training(
         "train_loss_history": train_loss_history,
         "validation_iou": validation_iou,
         "validation_f1": validation_f1,
+        "calibration_iou": calibration_iou,
+        "calibration_f1": calibration_f1,
+        "decision_threshold": decision_threshold,
+        "class_balance": class_balance,
+        "calibration_split": calibration_split,
+        "heldout_split": heldout_split,
         "samples": _sample_counts(samples),
         "artifact_id": artifact_id,
         "checkpoint_path": checkpoint_path,
@@ -190,6 +223,7 @@ def _evaluate_records(
     torch: Any,
     nn_functional: Any,
     synthetic_unit_mode: bool,
+    threshold: float = 0.5,
 ) -> tuple[float, float]:
     true_positive = 0.0
     false_positive = 0.0
@@ -204,7 +238,7 @@ def _evaluate_records(
                 synthetic_unit_mode=synthetic_unit_mode,
             )
             probabilities = torch.sigmoid(model(image.unsqueeze(0))).squeeze(0)
-            prediction = probabilities >= 0.5
+            prediction = probabilities >= threshold
             target_bool = target >= 0.5
             valid_bool = valid >= 0.5
             true_positive += float((prediction & target_bool & valid_bool).sum().item())
@@ -216,6 +250,89 @@ def _evaluate_records(
     iou = 0.0 if iou_denominator == 0 else true_positive / iou_denominator
     f1 = 0.0 if f1_denominator == 0 else (2.0 * true_positive) / f1_denominator
     return round(iou, 6), round(f1, 6)
+
+
+def _calibrate_threshold(
+    *,
+    model: Any,
+    records: list[dict[str, Any]],
+    torch: Any,
+    nn_functional: Any,
+    synthetic_unit_mode: bool,
+) -> tuple[float, float, float]:
+    best_threshold = 0.5
+    best_iou, best_f1 = _evaluate_records(
+        model=model,
+        records=records,
+        torch=torch,
+        nn_functional=nn_functional,
+        synthetic_unit_mode=synthetic_unit_mode,
+        threshold=best_threshold,
+    )
+    for threshold in (0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.55, 0.6, 0.65):
+        iou, f1 = _evaluate_records(
+            model=model,
+            records=records,
+            torch=torch,
+            nn_functional=nn_functional,
+            synthetic_unit_mode=synthetic_unit_mode,
+            threshold=threshold,
+        )
+        if (f1, iou) > (best_f1, best_iou):
+            best_threshold = threshold
+            best_iou = iou
+            best_f1 = f1
+    return round(best_threshold, 2), best_iou, best_f1
+
+
+def _class_balance(
+    *,
+    records: list[dict[str, Any]],
+    torch: Any,
+    nn_functional: Any,
+    synthetic_unit_mode: bool,
+) -> dict[str, float | int]:
+    positive_pixels = 0.0
+    valid_pixels = 0.0
+    for record in records:
+        _, target, valid = _load_training_tensors(
+            record,
+            torch=torch,
+            nn_functional=nn_functional,
+            synthetic_unit_mode=synthetic_unit_mode,
+        )
+        positive_pixels += float((target * valid).sum().item())
+        valid_pixels += float(valid.sum().item())
+    negative_pixels = max(0.0, valid_pixels - positive_pixels)
+    positive_ratio = 0.0 if valid_pixels == 0 else positive_pixels / valid_pixels
+    raw_pos_weight = 1.0 if positive_pixels <= 0 else negative_pixels / positive_pixels
+    return {
+        "valid_pixels": int(valid_pixels),
+        "positive_pixels": int(positive_pixels),
+        "negative_pixels": int(negative_pixels),
+        "positive_ratio": round(positive_ratio, 6),
+        "loss_pos_weight": round(min(max(raw_pos_weight, 1.0), 50.0), 6),
+    }
+
+
+def _segmentation_loss(*, logits: Any, target: Any, valid: Any, criterion: Any) -> Any:
+    loss_map = criterion(logits, target)
+    bce = (loss_map * valid).sum() / valid.sum().clamp_min(1.0)
+    probabilities = logits.sigmoid()
+    intersection = (probabilities * target * valid).sum()
+    denominator = ((probabilities + target) * valid).sum().clamp_min(1.0e-6)
+    dice_loss = 1.0 - ((2.0 * intersection + 1.0e-6) / (denominator + 1.0e-6))
+    return bce + (0.5 * dice_loss)
+
+
+def _epochs_for_stage(stage: str, *, synthetic_unit_mode: bool) -> int:
+    if synthetic_unit_mode:
+        return 3
+    if stage == "smoke":
+        return 8
+    if stage in {"modal-smoke", "medium"}:
+        return 6
+    return 4
 
 
 def _load_training_tensors(

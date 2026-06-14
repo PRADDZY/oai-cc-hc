@@ -245,6 +245,12 @@ def _perception_result_to_bundle_dict(result: dict[str, Any]) -> dict[str, Any]:
         "samples_seen": result["samples"],
         "event_held_out_iou": result["validation_iou"],
         "event_held_out_f1": result["validation_f1"],
+        "decision_threshold": result.get("decision_threshold"),
+        "calibration_iou": result.get("calibration_iou"),
+        "calibration_f1": result.get("calibration_f1"),
+        "class_balance": result.get("class_balance"),
+        "calibration_split": result.get("calibration_split"),
+        "heldout_split": result.get("heldout_split"),
         "calibration_ece": result.get("calibration_ece", 0.0),
         "claim_boundary": "MVP S1 flood segmentation baseline; not operational approval",
     }
