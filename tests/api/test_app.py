@@ -85,7 +85,7 @@ def test_event_ingest_list_snapshot_and_replay_preserve_contract_labels(
     ]
 
 
-def test_policy_and_operator_paths_preserve_model_shield_and_human_labels(
+def test_policy_and_operator_paths_preserve_model_shield_and_simulation_labels(
     client: TestClient,
     mission_payload: dict[str, Any],
 ) -> None:
@@ -126,6 +126,8 @@ def test_policy_and_operator_paths_preserve_model_shield_and_human_labels(
     assert operator_response.status_code == 201
     assert operator_response.json()["event"]["payload"]["human_approved"] is True
     assert operator_response.json()["event"]["source"] == "human-operator"
+    assert operator_response.json()["event"]["data_label"] == "simulated"
+    assert operator_response.json()["event"]["simulation_only"] is True
 
 
 def test_api_returns_not_found_conflict_and_mission_mismatch_errors(

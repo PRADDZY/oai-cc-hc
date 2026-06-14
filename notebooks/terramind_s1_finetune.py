@@ -1,7 +1,8 @@
 """Colab-friendly TerraMind S1 fine-tuning entrypoint.
 
 This file intentionally imports no heavy ML dependencies at module import time.
-Install the `perception` optional dependencies in Colab before calling `main`.
+Install TerraTorch/PyTorch explicitly in Colab before calling `main`, and record
+the resolved package versions in the exported model card.
 """
 
 MODEL_ID = "ibm-esa-geospatial/TerraMind-1.0-tiny"
@@ -19,4 +20,3 @@ def main() -> dict[str, str]:
 
 if __name__ == "__main__":
     print(main())
-

@@ -185,7 +185,7 @@ def create_app(store: EventStore | None = None) -> FastAPI:
                         source="human-operator",
                         event_type="operator.decision",
                         payload=decision.model_dump(mode="json"),
-                        data_label=DataLabel.LIVE,
+                        data_label=DataLabel.SIMULATED,
                     )
                 )
             )

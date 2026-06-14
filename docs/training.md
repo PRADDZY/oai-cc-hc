@@ -19,7 +19,7 @@ policy observation.
 | Copernicus EMS, GPM Final | Offline reference | Never presented as real-time input |
 
 TerraMind is pinned to `ibm-esa-geospatial/TerraMind-1.0-tiny` revision
-`2b5ac0a`. The deployable flood path is S1-only; S1+S2 is an upper-bound
+`2b5ac0a`. The intended exported flood path is S1-only; S1+S2 is an upper-bound
 experiment because cloud-free optical imagery is not guaranteed.
 
 Training starts with a frozen backbone and new flood/projection heads. Only the
@@ -29,6 +29,26 @@ validity masks, and model revision.
 
 The drone detector is a separate compact model. Maritime people-in-water data
 is useful initialization but does not prove urban flood generalization.
+
+## Colab training dependencies
+
+The repository lockfile intentionally covers only the lightweight API,
+simulation, contract, and command-center development path. GPU perception and
+MARL training dependencies are installed explicitly inside Colab so default
+repository scans do not inherit large optional stacks that are not needed to run
+the demo.
+
+Use current Colab-compatible wheels for the active runtime, then record exact
+resolved versions in the exported model card. The intended training stack is:
+
+- TerraTorch for TerraMind flood segmentation experiments.
+- PyTorch and TorchVision for perception heads and detector fine-tuning.
+- Gymnasium, PettingZoo, and Ray RLlib for scalable MARL training.
+- Weights & Biases or Trackio for experiment tracking.
+
+The lightweight notebook entrypoints in `notebooks/` are import-safe in the
+default dev environment and should fail fast in Colab if a required training
+package is missing.
 
 ## RL observation adapter
 
@@ -70,4 +90,3 @@ hide unsafe behavior behind higher mission score.
 Each policy condition uses at least three training seeds and 100 locked
 evaluation missions when compute permits. Reports include bootstrap confidence
 intervals and label reduced runs honestly.
-

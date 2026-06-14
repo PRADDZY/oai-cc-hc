@@ -25,7 +25,7 @@ export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
         <div className="hero-card" aria-label="Mission confidence">
           <span>World Confidence</span>
           <strong>{Math.round(mission.confidence * 100)}%</strong>
-          <small>Live decisions remain shielded</small>
+          <small>Simulated decision proposals remain shielded</small>
         </div>
       </section>
 
@@ -135,4 +135,3 @@ function DroneRoster({ drones }: { drones: DroneState[] }) {
 }
 
 export default App;
-
