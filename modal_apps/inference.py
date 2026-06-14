@@ -29,10 +29,11 @@ def inference_image() -> modal.Image:
 )
 @modal.asgi_app()
 def api() -> Any:
-    from fastapi import FastAPI, Request
+    from fastapi import Body, FastAPI
 
     fastapi_app = FastAPI(title="Flood Rescue Modal Inference")
     deployed_git_sha = git_sha()
+    optional_json_body = Body(default=None)
 
     @fastapi_app.get("/health")
     def health() -> dict[str, Any]:
@@ -52,12 +53,8 @@ def api() -> Any:
         return _proof_latest(deployed_git_sha)
 
     @fastapi_app.post("/policy_propose")
-    async def policy_propose(request: Request) -> dict[str, Any]:
-        try:
-            payload = await request.json()
-        except Exception:
-            payload = {}
-        if not isinstance(payload, dict):
+    def policy_propose(payload: dict[str, Any] | None = optional_json_body) -> dict[str, Any]:
+        if payload is None:
             payload = {}
         return _policy_propose(payload, deployed_git_sha)
 
