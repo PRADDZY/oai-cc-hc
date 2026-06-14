@@ -30,7 +30,8 @@ def base_image() -> modal.Image:
     return (
         modal.Image.debian_slim(python_version="3.13")
         .pip_install("fastapi>=0.115,<1", "pydantic>=2.10,<3")
-        .add_local_python_source("rescue_swarm")
+        .add_local_dir("src", remote_path="/root/src", copy=True)
+        .env({"PYTHONPATH": "/root/src", "PYTHONUTF8": "1"})
     )
 
 
