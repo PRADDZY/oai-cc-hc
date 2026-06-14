@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import { fetchActiveModels, fetchLatestProof } from "./api";
+import { fetchActiveModels, fetchHealth, fetchLatestProof } from "./api";
 import { demoMission } from "./demo";
-import type { ActiveModelManifest, DroneState, MissionSnapshot, ProofSummary } from "./types";
+import type {
+  ActiveModelManifest,
+  DroneState,
+  MissionSnapshot,
+  ProofPayload,
+  ProofSummary,
+  WorkerHealth,
+} from "./types";
 import "./styles.css";
 
 const roleLabels: Record<DroneState["role"], string> = {
@@ -13,17 +20,20 @@ const roleLabels: Record<DroneState["role"], string> = {
 };
 
 export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
+  const [health, setHealth] = useState<WorkerHealth | null>(null);
   const [proof, setProof] = useState<ProofSummary | null>(null);
   const [activeModels, setActiveModels] = useState<ActiveModelManifest | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    void Promise.all([fetchLatestProof(), fetchActiveModels()]).then(([nextProof, models]) => {
+    void Promise.all([fetchHealth(), fetchLatestProof(), fetchActiveModels()]).then(([nextHealth, nextProof, models]) => {
       if (!mounted) {
         return;
       }
+      const payload = proofPayload(nextProof);
+      setHealth(nextHealth);
       setProof(nextProof);
-      setActiveModels(models ?? nextProof?.active_models ?? null);
+      setActiveModels(models ?? payload?.active_models ?? nextProof?.active_models ?? null);
     });
     return () => {
       mounted = false;
@@ -60,7 +70,7 @@ export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
       <section className="grid-layout">
         <MissionMap mission={mission} />
         <aside className="side-panel" aria-label="Swarm status">
-          <ProofPanel proof={proof} activeModels={activeModels} />
+          <ProofPanel health={health} proof={proof} activeModels={activeModels} />
           <SafetyPanel mission={mission} />
           <DroneRoster drones={mission.drones} />
         </aside>
@@ -81,19 +91,36 @@ export function App({ mission = demoMission }: { mission?: MissionSnapshot }) {
 }
 
 function ProofPanel({
+  health,
   proof,
   activeModels,
 }: {
+  health: WorkerHealth | null;
   proof: ProofSummary | null;
   activeModels: ActiveModelManifest | null;
 }) {
-  const status = proof?.passed ? "Modal proof gate passed" : "Awaiting Modal proof";
+  const payload = proofPayload(proof);
+  const rlPayload = payload?.proofs?.rl?.payload;
+  const perceptionPayload = payload?.proofs?.perception?.payload;
+  const releaseGate = rlPayload?.release_gate;
+  const passed = Boolean(payload?.passed ?? proof?.passed);
+  const status = proof ? (passed ? "Modal proof gate passed" : "Modal proof needs review") : "Connecting to live proof";
+  const simulationOnly = Boolean(proof?.simulation_only ?? payload?.active_models?.simulation_only ?? health?.simulation_only);
   return (
     <section className="proof-panel" aria-label="Modal training proof">
       <p className="eyebrow">Cloudflare + Modal</p>
       <h2>{status}</h2>
-      <p>{proof?.readme_summary ?? "Live gateway will show the latest Modal eval result here."}</p>
-      <dl>
+      <p>{payload?.readme_summary ?? proof?.readme_summary ?? proof?.reason ?? "Live gateway will show the latest Modal eval result here."}</p>
+      <div className="live-strip" aria-label="Live deployment status">
+        <span className={health?.status === "ok" ? "signal good" : "signal"}>
+          Worker {health?.status ?? "checking"}
+        </span>
+        <span className={health?.modal_configured ? "signal good" : "signal caution"}>
+          Modal {health?.modal_configured ? "configured" : "fallback-safe"}
+        </span>
+        {payload?.modal_app && <span className="signal">{payload.modal_app}</span>}
+      </div>
+      <dl className="model-list">
         <div>
           <dt>Policy</dt>
           <dd>{activeModels?.policy_artifact ?? "not promoted yet"}</dd>
@@ -103,9 +130,57 @@ function ProofPanel({
           <dd>{activeModels?.perception_artifact ?? "not promoted yet"}</dd>
         </div>
       </dl>
-      <span className="label label-simulated">simulation only</span>
+      <div className="metric-grid" aria-label="Evaluation metrics">
+        <Metric label="Lives aided" value={formatMetric(rlPayload?.candidate?.lives_aided_safely_mean)} />
+        <Metric label="Rescue rate" value={formatPercent(rlPayload?.candidate?.rescue_rate_mean)} />
+        <Metric label="Coverage" value={formatPercent(rlPayload?.candidate?.coverage_mean)} />
+        <Metric label="Link continuity" value={formatPercent(rlPayload?.candidate?.communication_continuity_mean)} />
+        <Metric label="Safety failures" value={formatInteger(releaseGate?.safety_failures ?? rlPayload?.candidate?.safety_failures)} />
+        <Metric label="Perception IoU" value={formatPercent(perceptionPayload?.event_held_out_iou)} />
+      </div>
+      {releaseGate?.reasons && releaseGate.reasons.length > 0 && (
+        <p className="proof-reason">Gate note: {releaseGate.reasons.join("; ")}</p>
+      )}
+      <span className="label label-simulated">{simulationOnly ? "simulation only" : "live proof"}</span>
     </section>
   );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="metric">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function proofPayload(proof: ProofSummary | null): ProofPayload | null {
+  if (!proof) {
+    return null;
+  }
+  return proof.payload ?? proof;
+}
+
+function formatMetric(value: number | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "--";
+  }
+  return value.toFixed(2);
+}
+
+function formatPercent(value: number | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "--";
+  }
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatInteger(value: number | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "--";
+  }
+  return String(Math.round(value));
 }
 
 function MissionMap({ mission }: { mission: MissionSnapshot }) {

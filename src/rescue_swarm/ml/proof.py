@@ -2,20 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid5
 
 from rescue_swarm.contracts import ActionKind, PolicyOutput
-from rescue_swarm.evaluation import (
-    EpisodeMetrics,
-    compare_metric,
-    evaluate_episode,
-    evaluate_release_gate,
-)
-from rescue_swarm.sim import FloodRescueConfig, FloodRescueParallelEnv, RescueAction
 
 NAMESPACE = UUID("c25c5f8b-4ca5-43d0-b4c0-bf250c80bf3f")
 
@@ -48,111 +41,118 @@ class ActiveModelManifest:
         return asdict(self)
 
 
-def build_data_prep_proof(*, stage: str = "smoke", git_sha: str = "unknown") -> ProofBundle:
+def data_manifest_to_proof(
+    *,
+    manifest: dict[str, Any],
+    stage: str,
+    git_sha: str,
+) -> ProofBundle:
+    dataset_hash = manifest.get("dataset_hash") or manifest.get("manifest_sha256")
+    records_indexed = manifest.get("records_indexed", manifest.get("sample_count", 0))
     payload = {
-        "dataset": "Sen1Floods11",
-        "dataset_source": "huggingface:harshinde/sen1floods",
-        "dataset_hash": _stable_hash("sen1floods11", stage),
-        "split_policy": "event-held-out",
-        "modal_volumes": ["flood-rescue-data", "flood-rescue-runs"],
-        "records_indexed": 446 if stage != "smoke" else 24,
+        "dataset": manifest["dataset"],
+        "dataset_version": manifest["dataset_version"],
+        "dataset_source": manifest["dataset_source"],
+        "dataset_hash": dataset_hash,
+        "stage": stage,
+        "split_policy": manifest["split_policy"],
+        "records_indexed": records_indexed,
+        "limits": manifest["limits"],
+        "manifest_path": manifest["manifest_path"],
         "claim_boundary": "dataset manifest proof only; imagery is not RL trajectory data",
     }
     return _bundle("data_prep", git_sha, payload, trained_result=False)
 
 
-def build_perception_training_proof(
+def proof_from_training_result(result: dict[str, Any]) -> ProofBundle:
+    if "proof_type" not in result and "model_family" in result:
+        result = _perception_result_to_bundle_dict(result)
+    if "proof_type" not in result and "algorithm" in result:
+        result = _ppo_result_to_bundle_dict(result)
+    if "run_id" not in result and result.get("proof_type") == "rl_training":
+        result = _ppo_result_to_bundle_dict(result["payload"] | {"git_sha": result["git_sha"]})
+    return ProofBundle(
+        proof_type=str(result["proof_type"]),
+        run_id=str(result["run_id"]),
+        generated_at=str(result["generated_at"]),
+        git_sha=str(result["git_sha"]),
+        simulation_only=bool(result["simulation_only"]),
+        trained_result=bool(result["trained_result"]),
+        payload=dict(result["payload"]),
+    )
+
+
+def build_release_gate_from_files(
     *,
-    stage: str = "smoke",
-    git_sha: str = "unknown",
+    stage: str,
+    git_sha: str,
+    run_path: Path,
 ) -> ProofBundle:
-    samples = 446 if stage != "smoke" else 24
-    # Deterministic proxy metrics keep local tests and Modal smoke runs cheap while
-    # preserving the artifact contract used by the deployed proof endpoint.
-    payload = {
-        "model_id": "ibm-esa-geospatial/TerraMind-1.0-tiny",
-        "model_revision": "2b5ac0a",
-        "modality": "S1GRD",
-        "dataset": "Sen1Floods11",
-        "training_mode": "frozen-backbone-plus-flood-head",
-        "samples_seen": samples,
-        "event_held_out_iou": round(0.58 + min(samples, 446) / 10000, 4),
-        "event_held_out_f1": round(0.69 + min(samples, 446) / 12000, 4),
-        "calibration_ece": round(0.11 - min(samples, 446) / 20000, 4),
-        "artifact_id": f"terramind-s1-{stage}-{_stable_hash(stage, 'perception')[:10]}",
-        "claim_boundary": "perception proof metric; not operational flood mapping approval",
-    }
-    return _bundle("perception_training", git_sha, payload, trained_result=True)
+    data = _read_bundle(run_path / f"data_prep_{stage}.json")
+    perception = _read_bundle(run_path / f"perception_eval_{stage}.json")
+    rl = _read_bundle(run_path / f"rl_eval_{stage}.json")
 
-
-def build_rl_training_proof(
-    *,
-    stage: str = "smoke",
-    git_sha: str = "unknown",
-    seeds: tuple[int, ...] | None = None,
-) -> ProofBundle:
-    eval_seeds = seeds or ((11, 17, 23, 29) if stage == "smoke" else tuple(range(100, 124)))
-    baseline = tuple(_run_episode("baseline-return", seed) for seed in eval_seeds)
-    candidate = tuple(_run_episode("trained-swarm", seed) for seed in eval_seeds)
-    gate = evaluate_release_gate(candidate, baseline)
-    comparison = asdict(gate.comparison)
-    payload = {
-        "algorithm": "masked-ppo-compatible swarm policy proof",
-        "stage": stage,
-        "curriculum": ["debug-two-drone", "shared-local-four", "hierarchical-eight"],
-        "ppo_constraints": {
-            "clip_param": 0.2,
-            "normalize_advantages": True,
-            "entropy_bonus": 0.01,
-            "grad_clip": 0.5,
-            "centralized_critic": True,
-        },
-        "eval_seeds": list(eval_seeds),
-        "candidate": _summarize(candidate),
-        "baseline": _summarize(baseline),
-        "release_gate": {
-            "passed": gate.passed,
-            "reasons": list(gate.reasons),
-            "safety_failures": gate.safety_failures,
-            "comparison": comparison,
-        },
-        "artifact_id": f"swarm-policy-{stage}-{_stable_hash(stage, 'rl')[:10]}",
-        "claim_boundary": "trained in simulation; human safety gate remains required",
-    }
-    return _bundle("rl_training", git_sha, payload, trained_result=True)
-
-
-def build_release_gate_proof(
-    *,
-    git_sha: str = "unknown",
-    stage: str = "smoke",
-) -> ProofBundle:
-    data = build_data_prep_proof(stage=stage, git_sha=git_sha)
-    perception = build_perception_training_proof(stage=stage, git_sha=git_sha)
-    rl = build_rl_training_proof(stage=stage, git_sha=git_sha)
-    passed = bool(rl.payload["release_gate"]["passed"])
+    rl_gate = rl["payload"]["release_gate"]
+    perception_passed = bool(perception["trained_result"]) and float(
+        perception["payload"].get("event_held_out_iou", 0.0)
+    ) >= 0.01
+    rl_passed = bool(rl["trained_result"]) and bool(rl_gate.get("passed", False))
+    passed = perception_passed and rl_passed
+    active_models = ActiveModelManifest(
+        policy_alias="production" if passed else "candidate",
+        policy_artifact=str(rl["payload"]["artifact_id"]),
+        perception_alias="production" if passed else "candidate",
+        perception_artifact=str(perception["payload"]["artifact_id"]),
+        promoted_at=_now(),
+        proof_run_id=str(rl["run_id"]),
+    ).to_dict()
     payload = {
         "passed": passed,
+        "stage": stage,
         "modal_app": "flood-rescue-inference",
-        "active_models": ActiveModelManifest(
-            policy_alias="production",
-            policy_artifact=str(rl.payload["artifact_id"]),
-            perception_alias="production",
-            perception_artifact=str(perception.payload["artifact_id"]),
-            promoted_at=_now(),
-            proof_run_id=rl.run_id,
-        ).to_dict(),
+        "active_models": active_models,
         "proofs": {
-            "data_prep": asdict(data),
-            "perception": asdict(perception),
-            "rl": asdict(rl),
+            "data_prep": data,
+            "perception": perception,
+            "rl": rl,
+        },
+        "release_gate": {
+            "passed": passed,
+            "perception_passed": perception_passed,
+            "rl_passed": rl_passed,
+            "reasons": _gate_reasons(perception_passed, rl_passed, rl_gate),
+        },
+        "metrics": {
+            "perception_iou": perception["payload"].get("event_held_out_iou"),
+            "perception_f1": perception["payload"].get("event_held_out_f1"),
+            "perception_ece": perception["payload"].get("calibration_ece"),
+            "rl_candidate_lives_mean": rl["payload"]["candidate"].get(
+                "lives_aided_safely_mean"
+            ),
+            "rl_baseline_lives_mean": rl["payload"]["baseline"].get(
+                "lives_aided_safely_mean"
+            ),
+            "rl_mean_difference": rl_gate["comparison"].get("mean_difference"),
+            "rl_safety_failures": rl_gate.get("safety_failures"),
         },
         "readme_summary": (
-            "Modal produced simulation-only training/evaluation proof; Cloudflare "
-            "serves live proposals through a safety gate."
+            "Modal trained an MVP S1 flood perception baseline and a masked PPO swarm "
+            "orchestrator, then evaluated both for the live Cloudflare command center."
         ),
     }
     return _bundle("release_gate", git_sha, payload, trained_result=passed)
+
+
+def load_latest_release_gate(run_path: Path) -> dict[str, Any]:
+    release_path = run_path / "release_gate.json"
+    if not release_path.exists():
+        stage_files = sorted(run_path.glob("release_gate_*.json"))
+        if stage_files:
+            release_path = stage_files[-1]
+    if not release_path.exists():
+        raise FileNotFoundError("No Modal release gate proof has been generated yet")
+    bundle = _read_bundle(release_path)
+    return bundle["payload"]
 
 
 def build_fallback_policy_proposal(mission_id: str, *, git_sha: str = "unknown") -> dict[str, Any]:
@@ -160,112 +160,145 @@ def build_fallback_policy_proposal(mission_id: str, *, git_sha: str = "unknown")
         mission_id=uuid5(NAMESPACE, mission_id),
         drone_id="drone_0",
         action=ActionKind.SEARCH,
-        parameters={"sector": "highest-confidence-flood-edge", "source": "modal-fallback"},
-        confidence=0.61,
-        coordination_message=(0.25, 0.5, 0.25),
+        parameters={"sector": "safe-fallback-search", "source": "modal-fallback"},
+        confidence=0.52,
+        coordination_message=(0.34, 0.33, 0.33),
     )
     return {
-        "source": "modal-proof-service",
+        "source": "modal-fallback",
         "git_sha": git_sha,
         "simulation_only": True,
         "proposal": proposal.model_dump(mode="json"),
         "safety": {
             "status": "allowed",
             "executed_action": "search",
-            "reason_code": "simulation_fallback_safe_action",
+            "reason_code": "model_unavailable_safe_action",
             "shield_status": True,
         },
     }
 
 
-def _run_episode(policy_id: str, seed: int) -> EpisodeMetrics:
-    config = FloodRescueConfig(
-        num_drones=4,
-        width=6,
-        height=6,
-        victim_count=3,
-        flood_spread_probability=0.05,
-        max_steps=42,
+def build_policy_proposal_from_checkpoint(
+    *,
+    mission_id: str,
+    checkpoint_path: Path,
+    git_sha: str,
+    observation: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    from rescue_swarm.ml.ppo import load_policy_checkpoint, propose_action_from_policy
+
+    policy = load_policy_checkpoint(checkpoint_path)
+    policy_observation = observation or {
+        "position": (0, 0, 1),
+        "battery": 92.0,
+        "known_victims": 1,
+        "flood_cells": 8,
+        "rescued_victims": 0,
+        "link_quality": 0.86,
+        "action_mask": [1, 1, 0, 1, 1, 1],
+    }
+    action = propose_action_from_policy(policy, policy_observation)
+    proposal = PolicyOutput(
+        mission_id=uuid5(NAMESPACE, mission_id),
+        drone_id=str(policy_observation.get("drone_id", "drone_0")),
+        action=ActionKind(action["action"]),
+        parameters={"sector": "highest-priority-safe-cell", "source": "trained-modal-policy"},
+        confidence=float(action["confidence"]),
+        coordination_message=tuple(action["coordination_message"]),
     )
-    env = FloodRescueParallelEnv(config)
-    env.reset(seed=seed)
-    energy_used = 0.0
-    safety_interventions = 0
-    coverage_cells: set[tuple[int, int]] = set()
-    steps = 0
-    while env.agents:
-        actions = {
-            agent: _choose_action(policy_id, observation, steps)
-            for agent, observation in env._observations().items()  # noqa: SLF001
-        }
-        _, rewards, _, _, infos = env.step(actions)
-        del rewards
-        state = env.state()
-        for drone in state["drones"].values():
-            coverage_cells.add(tuple(drone["position"][:2]))
-        safety_interventions += sum(int(info["action_replaced"]) for info in infos.values())
-        energy_used += len(infos) * config.battery_per_step
-        steps += 1
-    state = env.state()
-    victims_total = len(state["victims"])
-    victims_rescued = len(state["rescued_victims"])
-    return evaluate_episode(
-        {
-            "mission_id": f"seed-{seed}",
-            "policy_id": policy_id,
-            "mode": "calibrated",
-            "victims_total": victims_total,
-            "victims_rescued": victims_rescued,
-            "time_to_rescue": steps,
-            "coverage": len(coverage_cells) / (config.width * config.height),
-            "collision_executions": 0,
-            "geofence_executions": 0,
-            "unsafe_drop_executions": 0,
-            "safety_interventions": safety_interventions,
-            "energy_used": energy_used,
-            "communication_continuity": 0.91 if policy_id == "trained-swarm" else 0.73,
-        }
-    )
-
-
-def _choose_action(policy_id: str, observation: dict[str, Any], step: int) -> RescueAction:
-    mask = observation["action_mask"]
-    if policy_id == "baseline-return":
-        if mask[RescueAction.RETURN]:
-            return RescueAction.RETURN
-        return RescueAction.HOLD
-    if mask[RescueAction.AID_DROP]:
-        return RescueAction.AID_DROP
-    if observation["known_victims"] and mask[RescueAction.MOVE] and step % 2 == 0:
-        return RescueAction.MOVE
-    if mask[RescueAction.SEARCH] and step % 3 != 2:
-        return RescueAction.SEARCH
-    if mask[RescueAction.RELAY]:
-        return RescueAction.RELAY
-    return RescueAction.HOLD
-
-
-def _summarize(metrics: tuple[EpisodeMetrics, ...]) -> dict[str, Any]:
-    count = len(metrics)
     return {
-        "episodes": count,
-        "lives_aided_safely_mean": _mean(item.lives_aided_safely for item in metrics),
-        "rescue_rate_mean": _mean(item.rescue_rate for item in metrics),
-        "coverage_mean": _mean(item.coverage for item in metrics),
-        "communication_continuity_mean": _mean(item.communication_continuity for item in metrics),
-        "safety_failures": sum(
-            item.collision_executions + item.geofence_executions + item.unsafe_drop_executions
-            for item in metrics
-        ),
-        "comparison_metric": asdict(compare_metric(metrics, metrics)),
+        "source": "trained-modal-policy",
+        "git_sha": git_sha,
+        "simulation_only": True,
+        "proposal": proposal.model_dump(mode="json"),
+        "safety": {
+            "status": "allowed",
+            "executed_action": proposal.action.value,
+            "reason_code": "trained_policy_safe_proposal",
+            "shield_status": True,
+        },
     }
 
 
-def _mean(values: Any) -> float:
-    materialized = tuple(float(value) for value in values)
-    if not materialized:
-        return math.nan
-    return round(sum(materialized) / len(materialized), 4)
+def _read_bundle(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _perception_result_to_bundle_dict(result: dict[str, Any]) -> dict[str, Any]:
+    payload = {
+        "artifact_id": result["artifact_id"],
+        "checkpoint_path": result["checkpoint_path"],
+        "dataset": "Sen1Floods11"
+        if result["dataset_source"] != "synthetic_unit"
+        else "synthetic-unit-fixture",
+        "dataset_hash": result.get("manifest_sha256") or result["artifact_id"],
+        "dataset_source": result["dataset_source"],
+        "synthetic_unit_mode": bool(result.get("synthetic_unit_mode", False)),
+        "stage": result["stage"],
+        "model_family": result["model_family"],
+        "training_mode": "optimizer-trained small S1 flood segmentation head",
+        "optimizer_steps": result["optimizer_steps"],
+        "history": [
+            {"epoch": idx + 1, "train_loss": loss}
+            for idx, loss in enumerate(result.get("train_loss_history", []))
+        ],
+        "samples_seen": result["samples"],
+        "event_held_out_iou": result["validation_iou"],
+        "event_held_out_f1": result["validation_f1"],
+        "calibration_ece": result.get("calibration_ece", 0.0),
+        "claim_boundary": "MVP S1 flood segmentation baseline; not operational approval",
+    }
+    return {
+        "proof_type": "perception_training",
+        "run_id": f"perception-{result['artifact_id']}",
+        "generated_at": _now(),
+        "git_sha": result["git_sha"],
+        "simulation_only": True,
+        "trained_result": bool(result["trained_result"]),
+        "payload": payload,
+    }
+
+
+def _ppo_result_to_bundle_dict(result: dict[str, Any]) -> dict[str, Any]:
+    artifact_id = result.get("artifact_id", f"policy-{_stable_hash(result)[:12]}")
+    payload = {
+        "algorithm": result["algorithm"],
+        "artifact_id": artifact_id,
+        "checkpoint_path": result.get("checkpoint_path"),
+        "stage": result.get("stage", "smoke"),
+        "optimizer_steps": result["optimizer_steps"],
+        "curriculum": ["debug-two-drone", "shared-local-four", "hierarchical-eight"],
+        "ppo_constraints": result["config"]["ppo_constraints"],
+        "training_logs_tail": result["loss_log"][-12:],
+        "reward_logs_tail": result["reward_log"][-12:],
+        "eval_seeds": result["config"]["eval_seeds"],
+        "candidate": result["candidate"],
+        "baseline": result["baseline"],
+        "release_gate": result["release_gate"],
+        "claim_boundary": "trained in simulation; human safety gate remains required",
+    }
+    return {
+        "proof_type": "rl_training",
+        "run_id": f"rl-{artifact_id}",
+        "generated_at": _now(),
+        "git_sha": result.get("git_sha", "unknown"),
+        "simulation_only": True,
+        "trained_result": bool(result["trained_result"]),
+        "payload": payload,
+    }
+
+
+def _gate_reasons(
+    perception_passed: bool,
+    rl_passed: bool,
+    rl_gate: dict[str, Any],
+) -> list[str]:
+    reasons: list[str] = []
+    if not perception_passed:
+        reasons.append("perception training/eval did not clear the MVP IoU floor")
+    if not rl_passed:
+        reasons.extend(rl_gate.get("reasons") or ["RL release gate did not pass"])
+    return reasons
 
 
 def _bundle(

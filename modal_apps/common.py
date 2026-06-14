@@ -36,7 +36,11 @@ def base_image() -> modal.Image:
 
 
 def training_image() -> modal.Image:
-    return base_image().pip_install("numpy>=2.1,<3")
+    return base_image().pip_install(
+        "numpy>=2.1,<3",
+        "torch>=2.9,<3",
+        "tifffile>=2025.6,<2027",
+    )
 
 
 data_volume = modal.Volume.from_name(DATA_VOLUME_NAME, create_if_missing=True)

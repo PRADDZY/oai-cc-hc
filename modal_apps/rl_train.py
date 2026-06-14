@@ -20,14 +20,14 @@ app = modal.App("flood-rescue-training")
     timeout=90 * 60,
 )
 def train_rl(stage: str = "smoke") -> str:
-    from rescue_swarm.ml import build_rl_training_proof
+    from rescue_swarm.ml import proof_from_training_result
+    from rescue_swarm.ml.ppo import train_swarm_policy
 
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
     RUN_PATH.mkdir(parents=True, exist_ok=True)
-    proof = build_rl_training_proof(stage=stage, git_sha=git_sha())
+    result = train_swarm_policy(stage=stage, artifact_root=MODEL_PATH, git_sha=git_sha())
+    proof = proof_from_training_result(result)
     (RUN_PATH / f"rl_eval_{stage}.json").write_text(proof.to_json(), encoding="utf-8")
-    artifact_path = MODEL_PATH / f"{proof.payload['artifact_id']}.json"
-    artifact_path.write_text(proof.to_json(), encoding="utf-8")
     run_volume.commit()
     model_volume.commit()
     return proof.to_json()

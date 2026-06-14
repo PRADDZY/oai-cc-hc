@@ -1,6 +1,10 @@
-import type { ActiveModelManifest, ProofSummary } from "./types";
+import type { ActiveModelManifest, ProofSummary, WorkerHealth } from "./types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+
+export async function fetchHealth(): Promise<WorkerHealth | null> {
+  return fetchJson<WorkerHealth>("/api/health");
+}
 
 export async function fetchActiveModels(): Promise<ActiveModelManifest | null> {
   return fetchJson<ActiveModelManifest>("/api/models/active");

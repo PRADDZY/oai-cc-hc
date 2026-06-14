@@ -242,13 +242,13 @@ h2 {
   gap: 0.75rem;
 }
 
-.proof-panel dl {
+.proof-panel .model-list {
   display: grid;
   gap: 0.5rem;
   margin: 0;
 }
 
-.proof-panel div {
+.proof-panel .model-list div {
   display: grid;
   grid-template-columns: 5.5rem 1fr;
   gap: 0.75rem;
@@ -261,6 +261,71 @@ h2 {
 .proof-panel dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.live-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.signal {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 0.32rem 0.62rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.signal.good {
+  border-color: rgba(168, 224, 99, 0.34);
+  color: var(--green);
+  background: rgba(168, 224, 99, 0.13);
+}
+
+.signal.caution {
+  border-color: rgba(255, 191, 105, 0.34);
+  color: var(--amber);
+  background: rgba(255, 191, 105, 0.13);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.metric {
+  min-width: 0;
+  border-radius: 1rem;
+  padding: 0.7rem;
+  background:
+    linear-gradient(135deg, rgba(112, 226, 216, 0.12), rgba(255, 255, 255, 0.045)),
+    rgba(0, 0, 0, 0.12);
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 0.22rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.05em;
+}
+
+.proof-reason {
+  margin-bottom: 0;
+  color: var(--amber);
+  font-size: 0.9rem;
 }
 
 .approval {
