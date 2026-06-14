@@ -39,11 +39,14 @@ export function MissionTheater({
     const droneMeshes: THREE.Mesh[] = [];
     const floodMeshes: THREE.Mesh[] = [];
     const beaconMeshes: THREE.Mesh[] = [];
+    const pulseMeshes: THREE.Mesh[] = [];
+    const routeMeshes: THREE.Mesh[] = [];
     const relayLines: THREE.Line[] = [];
+    const trailLines: THREE.Line[] = [];
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    camera.position.set(0, 14, 18);
+    camera.position.set(0, 13.5, phase.id === "mission-complete" ? 15.5 : 18);
     camera.lookAt(0, 0, 0);
 
     const root = new THREE.Group();
@@ -59,7 +62,7 @@ export function MissionTheater({
     scene.add(key);
 
     const deck = new THREE.Mesh(
-      new THREE.PlaneGeometry(worldSize, worldSize, 24, 24),
+      new THREE.PlaneGeometry(worldSize, worldSize, 36, 36),
       new THREE.MeshStandardMaterial({
         color: 0x071411,
         metalness: 0.18,
@@ -69,6 +72,22 @@ export function MissionTheater({
       }),
     );
     root.add(deck);
+
+    const satelliteFrame = new THREE.Group();
+    const frameMaterial = new THREE.LineBasicMaterial({
+      color: 0x69e8db,
+      transparent: true,
+      opacity: 0.42,
+    });
+    const frameGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-worldSize * 0.43, -worldSize * 0.43, 0.24),
+      new THREE.Vector3(worldSize * 0.43, -worldSize * 0.43, 0.24),
+      new THREE.Vector3(worldSize * 0.43, worldSize * 0.43, 0.24),
+      new THREE.Vector3(-worldSize * 0.43, worldSize * 0.43, 0.24),
+      new THREE.Vector3(-worldSize * 0.43, -worldSize * 0.43, 0.24),
+    ]);
+    satelliteFrame.add(new THREE.Line(frameGeometry, frameMaterial));
+    root.add(satelliteFrame);
 
     const grid = new THREE.GridHelper(worldSize, gridSize, 0x69e8db, 0x1c4746);
     grid.rotation.x = Math.PI / 2;
@@ -105,6 +124,20 @@ export function MissionTheater({
       mesh.scale.setScalar(0.1);
       floodMeshes.push(mesh);
       root.add(mesh);
+
+      const pulse = new THREE.Mesh(
+        new THREE.RingGeometry(0.62, 0.78, 44),
+        new THREE.MeshBasicMaterial({
+          color: 0x69e8db,
+          transparent: true,
+          opacity: 0.12,
+          side: THREE.DoubleSide,
+        }),
+      );
+      pulse.position.copy(toWorld(cell.x, cell.y, 0.16));
+      pulse.userData.delay = mesh.userData.delay;
+      pulseMeshes.push(pulse);
+      root.add(pulse);
     }
 
     for (const victim of phase.mission.victims) {
@@ -152,6 +185,49 @@ export function MissionTheater({
       mesh.userData.role = drone.role;
       droneMeshes.push(mesh);
       root.add(mesh);
+
+      const trailStart = toWorld(
+        drone.x + (drone.role === "return" ? -0.9 : -0.45),
+        drone.y + (drone.role === "relay" ? 0.35 : 0.7),
+        0.9,
+      );
+      const trail = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          trailStart,
+          toWorld(drone.x, drone.y, drone.role === "relay" ? 1.46 : 1.16),
+        ]),
+        new THREE.LineBasicMaterial({
+          color: roleColor(drone.role),
+          transparent: true,
+          opacity: drone.role === "hold" ? 0.14 : 0.34,
+        }),
+      );
+      trailLines.push(trail);
+      root.add(trail);
+    }
+
+    const aidDrone = phase.mission.drones.find((drone) => drone.id === "drone_4");
+    const aidedVictim = phase.mission.victims.find((victim) => victim.id === "victim_alpha");
+    if (
+      aidDrone &&
+      aidedVictim &&
+      ["policy-handoff", "safety-review", "operator-approval", "aid-delivery", "mission-complete"].includes(phase.id)
+    ) {
+      const routeCurve = new THREE.CatmullRomCurve3([
+        toWorld(aidDrone.x, aidDrone.y, 1.28),
+        toWorld((aidDrone.x + aidedVictim.x) / 2 - 0.55, (aidDrone.y + aidedVictim.y) / 2, 2.25),
+        toWorld(aidedVictim.x, aidedVictim.y, aidedVictim.status === "aided" ? 1.05 : 0.9),
+      ]);
+      const route = new THREE.Mesh(
+        new THREE.TubeGeometry(routeCurve, 72, 0.035, 10, false),
+        new THREE.MeshBasicMaterial({
+          color: aidedVictim.status === "aided" ? 0xc8ff64 : 0xffbd58,
+          transparent: true,
+          opacity: 0.72,
+        }),
+      );
+      routeMeshes.push(route);
+      root.add(route);
     }
 
     for (const [from, to] of phase.mission.relayLinks) {
@@ -212,6 +288,7 @@ export function MissionTheater({
       resize();
 
       root.rotation.z = -0.06 + Math.sin(time * 0.2) * 0.015;
+      satelliteFrame.rotation.z = Math.sin(time * 0.18) * 0.035;
       scan.position.x = ((time * 2.4) % (worldSize + 3)) - worldSize / 2 - 1.5;
 
       floodMeshes.forEach((mesh) => {
@@ -219,6 +296,14 @@ export function MissionTheater({
         const reveal = THREE.MathUtils.clamp((time - delay) * 2.3, 0, 1);
         mesh.scale.setScalar(THREE.MathUtils.lerp(mesh.scale.x, reveal, 0.12));
         mesh.rotation.z = Math.sin(time * 0.8 + delay) * 0.03;
+      });
+
+      pulseMeshes.forEach((mesh, index) => {
+        const delay = Number(mesh.userData.delay ?? 0);
+        const wave = 1 + Math.sin(time * 1.8 + index * 0.38 + delay) * 0.16;
+        mesh.scale.setScalar(wave);
+        const material = mesh.material as THREE.MeshBasicMaterial;
+        material.opacity = 0.08 + Math.max(0, Math.sin(time * 1.4 + index)) * 0.16;
       });
 
       droneMeshes.forEach((mesh, index) => {
@@ -237,6 +322,17 @@ export function MissionTheater({
       relayLines.forEach((line, index) => {
         const material = line.material as THREE.LineBasicMaterial;
         material.opacity = 0.34 + Math.sin(time * 3 + index) * 0.18 + 0.24;
+      });
+
+      trailLines.forEach((line, index) => {
+        const material = line.material as THREE.LineBasicMaterial;
+        material.opacity = 0.16 + Math.max(0, Math.sin(time * 3.2 + index * 0.7)) * 0.32;
+      });
+
+      routeMeshes.forEach((mesh) => {
+        mesh.scale.setScalar(1 + Math.sin(time * 2.4) * 0.012);
+        const material = mesh.material as THREE.MeshBasicMaterial;
+        material.opacity = phase.id === "mission-complete" ? 0.9 : 0.54 + Math.sin(time * 2.1) * 0.18;
       });
 
       approvalHalo.rotation.z += 0.016;

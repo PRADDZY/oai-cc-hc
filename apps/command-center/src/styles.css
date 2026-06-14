@@ -9,6 +9,7 @@
   --line: rgba(201, 225, 211, 0.14);
   --panel: rgba(9, 22, 19, 0.9);
   --panel-solid: #0b1815;
+  --panel-glass: rgba(7, 19, 16, 0.72);
   --acid: #c8ff64;
   --cyan: #69e8db;
   --amber: #ffbd58;
@@ -99,8 +100,10 @@ button:disabled {
   border: 1px solid var(--line);
   border-bottom: 0;
   background:
+    linear-gradient(90deg, rgba(200, 255, 100, 0.1), transparent 14rem),
     linear-gradient(110deg, rgba(105, 232, 219, 0.055), transparent 45%),
     rgba(8, 20, 17, 0.86);
+  box-shadow: inset 0 1px 0 rgba(233, 241, 232, 0.08);
 }
 
 .brand-lockup {
@@ -230,7 +233,10 @@ h2 {
   min-height: 3.7rem;
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--line);
-  background: #0a1513;
+  background:
+    linear-gradient(90deg, rgba(105, 232, 219, 0.05), transparent 36%),
+    #0a1513;
+  box-shadow: inset 0 1px 0 rgba(233, 241, 232, 0.06);
 }
 
 .playback-state,
@@ -313,9 +319,22 @@ h2 {
 }
 
 .mission-stage {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   box-shadow: 0 1.8rem 4rem rgba(0, 0, 0, 0.26);
+}
+
+.mission-stage::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: 18rem;
+  height: 100%;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent, rgba(200, 255, 100, 0.035));
 }
 
 .stage-toolbar {
@@ -376,6 +395,7 @@ h2 {
   overflow: hidden;
   isolation: isolate;
   background:
+    radial-gradient(circle at 50% 52%, rgba(105, 232, 219, 0.08), transparent 22rem),
     linear-gradient(rgba(169, 211, 188, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(169, 211, 188, 0.045) 1px, transparent 1px),
     linear-gradient(145deg, #10221c 0%, #0d1b17 44%, #0b1513 100%);
@@ -402,7 +422,7 @@ h2 {
   height: 116%;
   opacity: 0.98;
   pointer-events: none;
-  filter: saturate(1.22) contrast(1.08);
+  filter: saturate(1.32) contrast(1.12) drop-shadow(0 0 2.4rem rgba(105, 232, 219, 0.08));
 }
 
 .map-data-layer {
@@ -646,6 +666,8 @@ h2 {
   background: rgba(7, 16, 14, 0.9);
   font-size: 0.58rem;
   letter-spacing: 0.08em;
+  clip-path: polygon(0 0, calc(100% - 0.75rem) 0, 100% 0.75rem, 100% 100%, 0.75rem 100%, 0 calc(100% - 0.75rem));
+  box-shadow: 0 0 2rem rgba(200, 255, 100, 0.13);
 }
 
 .policy-vector div {
@@ -710,6 +732,13 @@ h2 {
   z-index: 20;
 }
 
+.decision-rail > * {
+  backdrop-filter: blur(18px);
+  box-shadow:
+    inset 0 1px 0 rgba(233, 241, 232, 0.06),
+    0 1rem 2.6rem rgba(0, 0, 0, 0.22);
+}
+
 .phase-panel,
 .swarm-roster {
   padding: 1rem;
@@ -720,8 +749,22 @@ h2 {
   min-height: 22rem;
   overflow: hidden;
   background:
+    radial-gradient(circle at 100% 0%, rgba(200, 255, 100, 0.08), transparent 12rem),
     linear-gradient(150deg, rgba(105, 232, 219, 0.07), transparent 40%),
-    var(--panel-solid);
+    var(--panel-glass);
+}
+
+.phase-panel::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(233, 241, 232, 0.035) 0 1px,
+    transparent 1px 8px
+  );
+  opacity: 0.36;
 }
 
 .panel-index {
@@ -748,6 +791,7 @@ h2 {
   padding: 0.8rem;
   border-left: 3px solid var(--amber);
   background: rgba(255, 189, 88, 0.065);
+  box-shadow: inset 0 0 0 1px rgba(255, 189, 88, 0.08);
 }
 
 .advisory-card.status-live {
@@ -917,6 +961,12 @@ h2 {
   min-width: 0;
   padding: 0.5rem;
   background: #0a1613;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.roster-grid article:hover {
+  background: rgba(105, 232, 219, 0.06);
+  transform: translateY(-1px);
 }
 
 .mini-drone {
@@ -1081,6 +1131,7 @@ h2 {
   border-right: 1px solid var(--line);
   opacity: 0.36;
   transition: opacity 200ms ease, background 200ms ease;
+  clip-path: polygon(0 0, calc(100% - 0.8rem) 0, 100% 0.8rem, 100% 100%, 0 100%);
 }
 
 .mission-timeline article:last-child {
