@@ -52,6 +52,44 @@ export interface MissionSnapshot {
   };
 }
 
+export type PlaybackSpeed = 0.5 | 1 | 2;
+
+export type ApprovalDecision = "approved" | "scripted" | "held" | null;
+
+export type MissionAction = "search" | "relay" | "aid_drop" | "move" | "hold" | "return";
+
+export type SafetyStatus = "allowed" | "replaced" | "rejected";
+
+export interface LivePolicyProposal {
+  source: string;
+  simulation_only?: boolean;
+  proposal: {
+    mission_id?: string;
+    drone_id?: string;
+    action: MissionAction;
+    parameters?: Record<string, unknown>;
+    confidence: number;
+    coordination_message: number[];
+  };
+  safety: {
+    status: SafetyStatus;
+    executed_action: MissionAction;
+    reason_code: string;
+    shield_status: boolean;
+  };
+}
+
+export interface MissionPhase {
+  id: string;
+  title: string;
+  kicker: string;
+  narrative: string;
+  durationMs: number;
+  mission: MissionSnapshot;
+  objective: string;
+  feedLabel: DataLabel;
+}
+
 export interface ActiveModelManifest {
   policy_alias: string;
   policy_artifact: string;

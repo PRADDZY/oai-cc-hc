@@ -8,6 +8,7 @@ dist/
 build/
 *.egg-info/
 node_modules/
+.npm-cache/
 .next/
 coverage/
 *.tsbuildinfo
