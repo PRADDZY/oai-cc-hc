@@ -264,10 +264,6 @@ function MissionMap({
       </div>
 
       <div className="map-viewport">
-        <div className="map-terrain" aria-hidden="true" />
-        <div className="river river-a" aria-hidden="true" />
-        <div className="river river-b" aria-hidden="true" />
-        <div className="scan-beam" aria-hidden="true" />
         <div className="map-coordinate x-axis">73.8567 E</div>
         <div className="map-coordinate y-axis">18.5204 N</div>
         <MissionTheater
@@ -277,64 +273,66 @@ function MissionMap({
           heldOutcome={heldOutcome}
         />
 
-        {mission.floodCells.map((cell, index) => (
-          <span
-            key={cell.id}
-            className="flood-cell"
-            style={{
-              "--x": cell.x,
-              "--y": cell.y,
-              "--probability": cell.probability,
-              "--reveal-delay": `${index * 90}ms`,
-            } as CSSProperties}
-            title={`Flood probability ${Math.round(cell.probability * 100)}%`}
-          />
-        ))}
+        <div className="map-data-layer">
+          {mission.floodCells.map((cell, index) => (
+            <span
+              key={cell.id}
+              className="flood-cell"
+              style={{
+                "--x": cell.x,
+                "--y": cell.y,
+                "--probability": cell.probability,
+                "--reveal-delay": `${index * 90}ms`,
+              } as CSSProperties}
+              title={`Flood probability ${Math.round(cell.probability * 100)}%`}
+            />
+          ))}
 
-        <svg className="relay-layer" viewBox="0 0 1200 1200" aria-hidden="true">
-          {mission.relayLinks.map(([from, to]) => {
-            const start = mission.drones.find((drone) => drone.id === from);
-            const end = mission.drones.find((drone) => drone.id === to);
-            if (!start || !end) {
-              return null;
-            }
-            return (
-              <line
-                key={`${from}-${to}`}
-                x1={(start.x + 0.5) * 100}
-                y1={(start.y + 0.5) * 100}
-                x2={(end.x + 0.5) * 100}
-                y2={(end.y + 0.5) * 100}
-              />
-            );
-          })}
-        </svg>
+          <svg className="relay-layer" viewBox="0 0 1200 1200" aria-hidden="true">
+            {mission.relayLinks.map(([from, to]) => {
+              const start = mission.drones.find((drone) => drone.id === from);
+              const end = mission.drones.find((drone) => drone.id === to);
+              if (!start || !end) {
+                return null;
+              }
+              return (
+                <line
+                  key={`${from}-${to}`}
+                  x1={(start.x + 0.5) * 100}
+                  y1={(start.y + 0.5) * 100}
+                  x2={(end.x + 0.5) * 100}
+                  y2={(end.y + 0.5) * 100}
+                />
+              );
+            })}
+          </svg>
 
-        {displayVictims.map((victim) => (
-          <div
-            key={victim.id}
-            className={`victim-marker ${victim.status}`}
-            style={{ "--x": victim.x, "--y": victim.y } as CSSProperties}
-            aria-label={`${victim.id} ${victim.status}`}
-          >
-            <span className="victim-pulse" />
-            <strong>{victim.id.toUpperCase()}</strong>
-            <small>{victim.status === "aided" ? "AIDED" : `${Math.round(victim.confidence * 100)}%`}</small>
-          </div>
-        ))}
+          {displayVictims.map((victim) => (
+            <div
+              key={victim.id}
+              className={`victim-marker ${victim.status}`}
+              style={{ "--x": victim.x, "--y": victim.y } as CSSProperties}
+              aria-label={`${victim.id} ${victim.status}`}
+            >
+              <span className="victim-pulse" />
+              <strong>{victim.id.toUpperCase()}</strong>
+              <small>{victim.status === "aided" ? "AIDED" : `${Math.round(victim.confidence * 100)}%`}</small>
+            </div>
+          ))}
 
-        {mission.drones.map((drone) => (
-          <div
-            key={drone.id}
-            className={`drone-marker role-${drone.role}`}
-            style={{ "--x": drone.x, "--y": drone.y } as CSSProperties}
-            aria-label={`${drone.id} ${roleLabels[drone.role]}`}
-          >
-            <span className="drone-glyph" />
-            <strong>{drone.id.replace("drone_", "D")}</strong>
-            <small>{roleLabels[drone.role]}</small>
-          </div>
-        ))}
+          {mission.drones.map((drone) => (
+            <div
+              key={drone.id}
+              className={`drone-marker role-${drone.role}`}
+              style={{ "--x": drone.x, "--y": drone.y } as CSSProperties}
+              aria-label={`${drone.id} ${roleLabels[drone.role]}`}
+            >
+              <span className="drone-glyph" />
+              <strong>{drone.id.replace("drone_", "D")}</strong>
+              <small>{roleLabels[drone.role]}</small>
+            </div>
+          ))}
+        </div>
 
         {phase.id === "policy-handoff" && (
           <div className="policy-vector" aria-label="Live policy coordination vector">

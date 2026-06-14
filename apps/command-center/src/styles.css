@@ -396,13 +396,34 @@ h2 {
 
 .mission-theater {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   inset: -8% -5%;
   width: 110%;
   height: 116%;
   opacity: 0.98;
   pointer-events: none;
   filter: saturate(1.22) contrast(1.08);
+}
+
+.map-data-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.map-data-layer .flood-cell,
+.map-data-layer .relay-layer,
+.map-data-layer .drone-marker,
+.map-data-layer .victim-marker {
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  border: 0;
+  opacity: 0;
+  animation: none;
+  filter: none;
 }
 
 .map-terrain {
